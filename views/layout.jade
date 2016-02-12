@@ -4,4 +4,10 @@ html
     title= title
     link(rel='stylesheet', href='/stylesheets/style.css')
   body
-    block content
+    div.full-page-wrapper
+      div.title
+        h1= title
+      block content
+      hr
+      footer
+        | Copyright 2016

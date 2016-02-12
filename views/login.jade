@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  if user && auth
+    div.welcomebox
+      p.
+        Welcome, #{user}
+  else
+    div.loginbox
+      form(name="login", action="/login", method="post")
+        label
+          | Username: 
+          input(type="text", name="user")
+          br
+        label
+          | Password: 
+          input(type="password", name="pass")
+          br
+        input(type="submit", value="login")
+    br
+    (href='.') Home
