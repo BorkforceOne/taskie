@@ -6,13 +6,14 @@ var bcrypt = require('bcrypt');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Taskie' });
+  res.render('login', { title: 'Taskie' });
 });
 
 /* GET login page. */
 router.get('/login', function(req, res, next) {
 	
-  var locals = { title: 'Login',
+  var locals = {
+				 title: 'Taskie',
          user: ''
          };
 
@@ -27,7 +28,7 @@ router.get('/login', function(req, res, next) {
 /* POST login page. */
 router.post('/login', function(req, res, next) {
 
-  accounts.manualLogin(req.body.user, req.body.pass, function (e, o) {
+  accounts.manualLogin(req.body.username, req.body.password, function (e, o) {
 		if (o) {
   		res.render('login', {title: 'Login', user: o.username, auth: true});
 			console.log(o.username + " has logged in!");

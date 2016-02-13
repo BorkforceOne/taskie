@@ -16,16 +16,16 @@ block content
     form(name="register", action="/register", method="post")
       label
         | Username: 
-        input(type="text", name="user")
+        input(type="text", name="user", placeholder="Username")
         br
       label
         | Password: 
-        input(type="password", name="pass")
+        input(type="password", name="pass", placeholder="Password")
         br
       label
         | Email: 
-        input(type="email", name="email")
+        input(type="email", name="email", placeholder="Email")
         br
-      input(type="submit", value="register")
+      input(type="submit", value="Sign Up")
   br
   a(href='.') Home

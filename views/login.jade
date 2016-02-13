@@ -1,21 +1,20 @@
 extends layout
 
 block content
+  div.title
+    h1= title
   if user && auth
     div.welcomebox
       p.
         Welcome, #{user}
   else
-    div.loginbox
-      form(name="login", action="/login", method="post")
-        label
-          | Username: 
-          input(type="text", name="user")
-          br
-        label
-          | Password: 
-          input(type="password", name="pass")
-          br
-        input(type="submit", value="login")
-    br
-    a(href='.') Home
+   .container
+      form.form-signin(role='form', action='/login', method='post')
+        h2.form-signin-heading Please sign in
+        input.form-control(type='text', name='username', placeholder='Username', required='', autofocus='')
+        input.form-control(type='password', name='password', placeholder='Password', required='')
+        label.checkbox
+          input(type='checkbox', value='remember-me')
+          |  Remember me
+        button.btn.btn-lg.btn-success(type='submit') Sign in
+        a.btn.btn-lg.btn-success(role='button', href='register') Register
