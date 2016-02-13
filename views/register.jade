@@ -4,26 +4,28 @@ block content
   if regSuccess == false
     div.notif
       p.
-        Something went wrong! Try again!
+        Something went wrong:
+    ul
+      each val in messages
+        li= val
   else if regSuccess == true
     div.notif
       p.
         Registration Successful!
-  else
-    div.registerbox
-      form(name="register", action="/register", method="post")
-        label
-          | Username: 
-          input(type="text", name="user")
-          br
-        label
-          | Password: 
-          input(type="password", name="pass")
-          br
-        label
-          | Email: 
-          input(type="email", name="email")
-          br
-        input(type="submit", value="register")
-    br
-    a(href='.') Home
+  div.registerbox
+    form(name="register", action="/register", method="post")
+      label
+        | Username: 
+        input(type="text", name="user")
+        br
+      label
+        | Password: 
+        input(type="password", name="pass")
+        br
+      label
+        | Email: 
+        input(type="email", name="email")
+        br
+      input(type="submit", value="register")
+  br
+  a(href='.') Home
