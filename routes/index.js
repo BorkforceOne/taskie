@@ -30,11 +30,11 @@ router.post('/login', function(req, res, next) {
 
   accounts.manualLogin(req.body.username, req.body.password, function (e, o) {
 		if (o) {
-  		res.render('login', {title: 'Login', user: o.username, auth: true});
+  		res.render('login', {title: 'Taskie', user: o.username, auth: true});
 			console.log(o.username + " has logged in!");
 		}
 		else {
-  		res.render('login', {title: 'Login', auth: false});
+  		res.render('login', {title: 'Taskie', auth: false});
 			console.log("Login for '" + req.body.user + "' failed!");
 		}
 	});
@@ -42,7 +42,7 @@ router.post('/login', function(req, res, next) {
 
 /* GET register page. */
 router.get('/register', function(req, res, next) {
-  var locals = { title: 'Register'
+  var locals = { title: 'Taskie'
            };
   res.render('register', locals);
 });
@@ -50,13 +50,13 @@ router.get('/register', function(req, res, next) {
 /* POST register page. */
 router.post('/register', function(req, res, next) {
 
-  accounts.registerUser({username: req.body.user, password: req.body.pass, email: req.body.email}, function (e, result) {
+  accounts.registerUser({username: req.body.username, password: req.body.password, email: req.body.email}, function (e, result) {
     if (result.success) {
-      res.render('register', {title: 'Register', regSuccess: true});
+      res.render('register', {title: 'Taskie', regSuccess: true});
       console.log(req.body.user + " has registered!");
     }
     else {
-      res.render('register', {title: 'Register', regSuccess: false, messages: result.messages});
+      res.render('register', {title: 'Taskie', regSuccess: false, messages: result.messages});
       console.log("Registation failed!");
     }
   });
