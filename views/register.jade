@@ -4,7 +4,7 @@ block head-content
   link(rel='stylesheet', href='/stylesheets/register.css')
 
 block content
-  div.col-sm-6
+  div.col-sm-12.col-xs-12.col-md-6.col-lg-6
     div.title
       h1= title
     p.
@@ -20,8 +20,8 @@ block content
       div.alert.alert-success
         strong.
           Registration Successful!
-  div.col-sm-6
-      form.form-signin(role='form', action='/register', method='post')
+  div.col-sm-12.col-xs-12.col-md-6.col-lg-6
+      form.form-signin(role='form', action='register', method='post')
         input.form-control(type='text', name='username', placeholder='Username', required='', autofocus='')
         input.form-control(type='password', name='password', placeholder='Password', required='')
         input.form-control(type='password', name='conf_password', placeholder='Confirm Password', required='')
@@ -29,6 +29,7 @@ block content
         input.form-control(type='text', name='lastname', placeholder='Lastname', autofocus='')
         input.form-control(type='email', name='email', placeholder='Email', required='', autofocus='')
         input.form-control(type='email', name='conf_email', placeholder='Confirm Email', required='', autofocus='')
+        br.
         button.btn.btn-lg.btn-block.sharp.btn-success(type='submit') Sign Up
         |Or 
         a(href='login') sign in

@@ -31,7 +31,7 @@ router.post('/login', function(req, res, next) {
   accounts.manualLogin(req.body.username, req.body.password, function (e, o) {
 		if (o) {
   		res.render('login', {title: 'Taskie', user: o.username, auth: true});
-			console.log(o.username + " has logged in!");
+			console.log("'" + o.username + "' has logged in!");
 		}
 		else {
   		res.render('login', {title: 'Taskie', auth: false});
@@ -53,7 +53,7 @@ router.post('/register', function(req, res, next) {
   accounts.registerUser({username: req.body.username, password: req.body.password, email: req.body.email}, function (e, result) {
     if (result.success) {
       res.render('register', {title: 'Taskie', regSuccess: true});
-      console.log(req.body.user + " has registered!");
+      console.log("'" + req.body.username + "' has registered!");
     }
     else {
       res.render('register', {title: 'Taskie', regSuccess: false, messages: result.messages});
