@@ -1,9 +1,12 @@
 extends layout
 
+block head-content
+  link(rel='stylesheet', href='/stylesheets/login.css')
+
 block content
-  p
-    | Welcome to #{title}
-    br
-    a(href='login') Login
-    br
-    a(href='register') Register
+  div.col-sm-12
+    div.title
+      h1= title
+    div.alert.alert-success
+      |Welcome, #{user}
+    a.btn.btn-lg.btn-block.btn-success(role='button', href='logout') Sign Out

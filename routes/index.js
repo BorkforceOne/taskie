@@ -6,23 +6,28 @@ var bcrypt = require('bcrypt');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('login', { title: 'Taskie' });
+	if (req.session.loggedin) {
+  	res.render('index', {title: 'Taskie', user: req.session.username});
+		return;
+	}
+  res.redirect('/login');
+});
+
+
+router.get('/logout', function(req, res, next) {
+	if (req.session.loggedin) {
+		req.session.destroy();
+	}
+  res.redirect('/');
 });
 
 /* GET login page. */
 router.get('/login', function(req, res, next) {
-	
-  var locals = {
-				 title: 'Taskie',
-         user: ''
-         };
-
-  if (req.session.username) {
-    locals.user = req.session.username;
-    locals.auth = true;
-  }
-
-  res.render('login', locals);
+	if (req.session.loggedin) {
+    res.redirect('/');
+		return;
+	}
+  res.render('login', {title: 'Taskie'});
 });
 
 /* POST login page. */
@@ -30,14 +35,19 @@ router.post('/login', function(req, res, next) {
 
   accounts.manualLogin(req.body.username, req.body.password, function (e, o) {
 		if (o) {
-  		res.render('login', {title: 'Taskie', user: o.username, auth: true});
+			req.session.username = o.username;
+			req.session.uid = o.id;
+			req.session.loggedin = true;
+    	res.redirect('/');
 			console.log("'" + o.username + "' has logged in!");
+			return;
 		}
 		else {
   		res.render('login', {title: 'Taskie', auth: false});
 			console.log("Login for '" + req.body.user + "' failed!");
 		}
 	});
+
 });
 
 /* GET register page. */
