@@ -13,12 +13,35 @@ router.get('/', function(req, res, next) {
   res.redirect('/login');
 });
 
-
+/* GET logout page. */
 router.get('/logout', function(req, res, next) {
 	if (req.session.loggedin) {
 		req.session.destroy();
 	}
   res.redirect('/');
+});
+
+/* GET verification page. */
+router.get('/verify', function(req, res, next) {
+	if (req.query.code) {
+		accounts.useVerficationCode(req.query.code, function (err, o) {
+			if (err) {
+				console.log(err);
+			}
+			if (o) {
+				console.log('Account verified!');
+  			res.render('verify', {title: 'Taskie'});
+				return;
+			}
+			else {
+				console.log('Account could not be verified with that code!');
+			}
+  		res.redirect('/');
+		});
+	}
+	else {
+  	res.redirect('/');
+	}
 });
 
 /* GET login page. */

@@ -4,6 +4,11 @@ var mysql = require('mysql');
 var config = require('./config');
 var bcrypt = require('bcrypt');
 var async = require('async');
+var crypto = require('crypto');
+var nodemailer = require('nodemailer');
+
+var mail_transporter = nodemailer.createTransport('smtps://no-reply@taskie.xyz:spinoff-soften-debtor@smtp.zoho.com');
+
 
 var getDatabaseConnection = function () {
 	return mysql.createConnection(
@@ -28,6 +33,35 @@ exports.validatePassword = function (password, o, callback) {
 			callback(null, false);
 		}
 	});
+};
+
+exports.generateVerficationCode = function (callback) {
+  crypto.randomBytes(8, function(ex, buf) {
+    callback(null, buf.toString('hex'));
+  });
+};
+
+exports.sendEmailVerification = function (email, verification_code) {
+
+  var verification_url = 'https://app.taskie.xyz/verify?code=' + verification_code;
+
+	// setup e-mail data
+	var mailOptions = {
+			from: 'Taskie <no-reply@taskie.xyz>', // sender address
+			to: email, // list of receivers
+			subject: 'Taskie Account Verfication', // Subject line
+			text: 'Please visit ' + verification_url + ' to complete your registration.', // plaintext body
+			html: '<h1>Welcome to Taskie!</h1><br><br><p>Please visit ' + verification_url + ' (or click <a href=\'' + verification_url + '\'>here</a> to complete your registration.</p><br><br><p>If you did not sign up for an account at Taskie, please ignore this message</p>' // html body
+	};
+
+	// send mail with defined transport object
+	mail_transporter.sendMail(mailOptions, function(error, info){
+			if (error){
+					console.warn(error);
+			}
+			console.log('Verification code sent to \'' + email + '\' response: ' + info.response);
+	});
+
 };
 
 exports.manualLogin = function (user, password, callback) {
@@ -73,6 +107,42 @@ exports.getUser = function (user, callback) {
 	});
 	
 	connection.end();
+};
+
+exports.useVerficationCode = function (code, callback) {
+	var connection = getDatabaseConnection();
+
+	var sql = "SELECT * FROM `users` WHERE `verification_code`=?";
+	var inserts = [code];
+	sql = mysql.format(sql, inserts); 
+
+	connection.connect();
+
+	connection.query(sql, function(err, rows, fields) {
+		if (err) {
+			callback("An error occured looking up code: " + err, null);
+			return;
+		} else {
+			if (rows.length == 1) {
+				var sql = "UPDATE `users` SET `verification_code` = '' WHERE `id` = ?";
+				var inserts = [rows[0].id];
+				sql = mysql.format(sql, inserts); 
+				connection.query(sql, function(err, rows, fields) {
+					connection.end();
+					if (err) {
+						callback("An error occured consuming verification code: " + err, null);
+						return;
+					}
+					callback(null, true);
+				});
+			}
+			else {
+				connection.end();
+				return;
+			}
+		}
+	});
+	
 };
 
 exports.validUsername = function (username, callback) {
@@ -171,11 +241,17 @@ exports.registerUser = function (userinfo, callback) {
 						return;
 					}
 					userinfo.password = hash;
-					exports.addUser (userinfo, function (err, res) {
-						if (err)
-							callback(err);
-						else
-							callback(null, {success: res});
+					exports.generateVerficationCode (function (err, res) {
+						userinfo.verification_code = res;
+						exports.addUser (userinfo, function (err, res) {
+							if (err)
+								callback(err);
+							else {
+								callback(null, {success: res});
+								exports.sendEmailVerification(userinfo.email, userinfo.verification_code);
+								console.log("Emailing '" + userinfo.email + "' verification_code: '" + userinfo.verification_code + "'");
+							}
+						});
 					});
 				});
 			});
@@ -185,8 +261,8 @@ exports.registerUser = function (userinfo, callback) {
 
 exports.addUser = function (userinfo, callback) {
 	var connection = getDatabaseConnection();
-	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`) VALUES (NULL, ?, ?, ?, ?);";
-	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt];
+	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`, `verification_code`) VALUES (NULL, ?, ?, ?, ?, ?);";
+	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt, userinfo.verification_code];
 	sql = mysql.format(sql, inserts); 
 
 	connection.connect();
