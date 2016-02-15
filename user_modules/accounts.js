@@ -51,7 +51,7 @@ exports.sendEmailVerification = function (email, verification_code) {
 			to: email, // list of receivers
 			subject: 'Taskie Account Verfication', // Subject line
 			text: 'Please visit ' + verification_url + ' to complete your registration.', // plaintext body
-			html: '<h1>Welcome to Taskie!</h1><br><br><p>Please visit ' + verification_url + ' (or click <a href=\'' + verification_url + '\'>here</a> to complete your registration.</p><br><br><p>If you did not sign up for an account at Taskie, please ignore this message</p>' // html body
+			html: '<h1>Welcome to Taskie!</h1><br><br><p>Please visit ' + verification_url + ' (or click <a href=\'' + verification_url + '\'>here</a> to complete your registration)</p><br><br><p>If you did not sign up for an account at Taskie, please ignore this message</p>' // html body
 	};
 
 	// send mail with defined transport object
@@ -138,6 +138,7 @@ exports.useVerficationCode = function (code, callback) {
 			}
 			else {
 				connection.end();
+				callback(null, false);
 				return;
 			}
 		}
