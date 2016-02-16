@@ -149,12 +149,18 @@ exports.useVerficationCode = function (code, callback) {
 exports.validUsername = function (username, callback) {
   // Check that username is longer than 3 characters
   var messages = [];
-  if (username.length < 3) {
-		messages.push("Username must be at least 3 characters long");
+  if (username.length < 2) {
+		messages.push("Username must be at least 2 characters long");
   }
 
 	if (username.length > 128) {
 		messages.push("Username cannot exceed 128 characters");
+	}
+
+	var space_regex = /.*\s.*/i;
+
+	if (space_regex.test(username)) {
+		messages.push("Username cannot contain spaces");
 	}
   
   callback(null, messages);
@@ -180,10 +186,6 @@ exports.validPassword = function (password, callback) {
 		messages.push("Password must be at least 6 characters long");
   }
 
-	if (password.length > 128) {
-		messages.push("Password cannot exceed 128 characters");
-	}
-  
   callback(null, messages);
 };
 
