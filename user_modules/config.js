@@ -20,3 +20,7 @@ exports.session = {
 		maxAge: (system === 'prod') ? (168*(3600*(1000))) : (1*(3600*1000)),
 	}
 };
+
+exports.email_account = {
+	no_reply: 'smtps://no-reply@taskie.xyz:spinoff-soften-debtor@smtp.zoho.com'
+};

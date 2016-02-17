@@ -2,13 +2,11 @@ exports = module.exports = {};
 
 var mysql = require('mysql');
 var config = require('./config');
+var email = require('./email');
 var bcrypt = require('bcrypt');
 var async = require('async');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
-
-var mail_transporter = nodemailer.createTransport('smtps://no-reply@taskie.xyz:spinoff-soften-debtor@smtp.zoho.com');
-
 
 var getDatabaseConnection = function () {
 	return mysql.createConnection(
@@ -41,25 +39,12 @@ exports.generateVerficationCode = function (callback) {
   });
 };
 
-exports.sendEmailVerification = function (email, verification_code) {
+exports.sendEmailVerification = function (mailTo, verification_code) {
+  
+  var verificationUrl = 'https://app.taskie.xyz/verify?code=' + verification_code;
 
-  var verification_url = 'https://app.taskie.xyz/verify?code=' + verification_code;
-
-	// setup e-mail data
-	var mailOptions = {
-			from: 'Taskie <no-reply@taskie.xyz>', // sender address
-			to: email, // list of receivers
-			subject: 'Taskie Account Verfication', // Subject line
-			text: 'Please visit ' + verification_url + ' to complete your registration.', // plaintext body
-			html: '<h1>Welcome to Taskie!</h1><br><br><p>Please visit ' + verification_url + ' (or click <a href=\'' + verification_url + '\'>here</a> to complete your registration)</p><br><br><p>If you did not sign up for an account at Taskie, please ignore this message</p>' // html body
-	};
-
-	// send mail with defined transport object
-	mail_transporter.sendMail(mailOptions, function(error, info){
-			if (error){
-					console.warn(error);
-			}
-			console.log('Verification code sent to \'' + email + '\' response: ' + info.response);
+	email.sendEmail({template: email.mailTemplates.activate, mailTo: mailTo, subject: 'Taskie Account Activation', vars: {name: 'Brandon', application: 'Taskie', verificationUrl: verificationUrl}}, function (err, results) {
+		console.log(results.response);
 	});
 
 };
