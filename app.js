@@ -9,7 +9,7 @@ var session = require('express-session');
 var knex = require('knex');
 var KnexSessionStore = require('connect-session-knex')(session);
 var routes = require('./routes/index');
-var api = require('./routes/api');
+var apiV1 = require('./routes/api.v1');
 
 var knexSql = new knex({
 	client: 'mysql',
@@ -51,7 +51,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', routes);
-app.use('/api', api);
+app.use('/api/v1', apiV1);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
