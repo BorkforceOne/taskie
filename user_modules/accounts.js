@@ -1,4 +1,4 @@
-console.log("Loading config.js");
+console.log("Loading accounts.js");
 
 exports = module.exports = {};
 
