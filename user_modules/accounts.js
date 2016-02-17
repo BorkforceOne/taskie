@@ -41,11 +41,11 @@ exports.generateVerficationCode = function (callback) {
   });
 };
 
-exports.sendEmailVerification = function (mailTo, verification_code) {
+exports.sendEmailVerification = function (userinfo) {
   
-  var verificationUrl = 'https://app.taskie.xyz/verify?code=' + verification_code;
+  var verificationUrl = 'https://app.taskie.xyz/verify?code=' + userinfo.verification_code;
 
-	email.sendEmail({template: email.mailTemplates.activate, mailTo: mailTo, subject: 'Taskie Account Activation', vars: {name: 'Brandon', application: 'Taskie', verificationUrl: verificationUrl}}, function (err, results) {
+	email.sendEmail({template: email.mailTemplates.activate, mailTo: userinfo.email, subject: 'Taskie Account Activation', vars: {name: userinfo.firstname, application: 'Taskie', verificationUrl: verificationUrl, mailtoAddress: 'webmaster@taskie.xyz', mailtoName: 'Taskie Support'}}, function (err, results) {
 		console.log(results.response);
 	});
 
@@ -133,43 +133,53 @@ exports.useVerficationCode = function (code, callback) {
 	
 };
 
-exports.validUsername = function (username, callback) {
+exports.validUsername = function (userinfo, callback) {
   // Check that username is longer than 3 characters
+	
   var messages = [];
-  if (username.length < 2) {
+  if (userinfo.username.length < 2) {
 		messages.push("Username must be at least 2 characters long");
   }
 
-	if (username.length > 128) {
+	if (userinfo.username.length > 128) {
 		messages.push("Username cannot exceed 128 characters");
 	}
 
 	var space_regex = /.*\s.*/i;
 
-	if (space_regex.test(username)) {
+	if (space_regex.test(userinfo.username)) {
 		messages.push("Username cannot contain spaces");
 	}
   
   callback(null, messages);
 };
 
-exports.validEmail = function (email, callback) {
+exports.validEmail = function (userinfo, callback) {
   // Check that password is longer than 3 characters
   var messages = [];
 
+	if (userinfo.email != userinfo.email_conf) {
+		messages.push("Emails do not match");
+	}
+
 	var email_regex = /.+@.+\..+/i;
 
-	if (!email_regex.test(email)) {
+	if (!email_regex.test(userinfo.email)) {
 		messages.push("Invalid email address");
 	}
   
   callback(null, messages);
 };
 
-exports.validPassword = function (password, callback) {
+exports.validPassword = function (userinfo, callback) {
   // Check that password is longer than 3 characters
   var messages = [];
-  if (password.length < 6) {
+
+	if (userinfo.password != userinfo.password_conf) {
+		messages.push("Passwords do not match");
+	}
+
+  if (userinfo.password.length < 6) {
 		messages.push("Password must be at least 6 characters long");
   }
 
@@ -181,13 +191,13 @@ exports.validUserinfo = function (userinfo, callback) {
 
 	async.series([
 		function(callback){
-			exports.validUsername(userinfo.username, callback);
+			exports.validUsername({username: userinfo.username}, callback);
 		},
 		function(callback){
-			exports.validPassword(userinfo.password, callback);
+			exports.validPassword({password: userinfo.password, password_conf: userinfo.password_conf}, callback);
 		},
 		function(callback){
-			exports.validEmail(userinfo.email, callback);
+			exports.validEmail({email: userinfo.email, email_conf: userinfo.email_conf}, callback);
 		}],
 		function(err, results){
 			for (var i=0; i<results.length; i++) {
@@ -237,9 +247,9 @@ exports.registerUser = function (userinfo, callback) {
 							if (err)
 								callback(err);
 							else {
-								callback(null, {success: res});
-								exports.sendEmailVerification(userinfo.email, userinfo.verification_code);
+								exports.sendEmailVerification({email: userinfo.email, firstname: userinfo.firstname, verification_code: userinfo.verification_code});
 								console.log("Emailing '" + userinfo.email + "' verification_code: '" + userinfo.verification_code + "'");
+								callback(null, {success: res});
 							}
 						});
 					});
@@ -251,8 +261,8 @@ exports.registerUser = function (userinfo, callback) {
 
 exports.addUser = function (userinfo, callback) {
 	var connection = getDatabaseConnection();
-	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`, `verification_code`) VALUES (NULL, ?, ?, ?, ?, ?);";
-	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt, userinfo.verification_code];
+	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`, `verification_code`, `firstname`, `lastname`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);";
+	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt, userinfo.verification_code, userinfo.firstname, userinfo.lastname];
 	sql = mysql.format(sql, inserts); 
 
 	connection.connect();

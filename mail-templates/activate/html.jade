@@ -25,7 +25,11 @@ head
                         //- -----------------------------------------------------------------------------------
                         p Hello #{name}!
                         p
-                          | Welcome to #{application}!
+                          | We would like to welcome you as our newest member!
+                        p
+                          | Thank you so much for using our services. If you have any questions, or suggestions, please feel free to email us here at&nbsp;
+                          a(href='mailto:#{mailtoAddress}') #{mailtoName}
+                          | .
                         p
                           | Please activate your account by clicking&nbsp;
                           a(href='#{verificationUrl}') here

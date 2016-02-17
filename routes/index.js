@@ -83,7 +83,17 @@ router.get('/register', function(req, res, next) {
 /* POST register page. */
 router.post('/register', function(req, res, next) {
 
-  accounts.registerUser({username: req.body.username, password: req.body.password, email: req.body.email}, function (e, result) {
+	var userinfo = {
+		username: req.body.username,
+		password: req.body.password,
+		password_conf: req.body.password_conf,
+		email: req.body.email,
+		email_conf: req.body.email_conf,
+		firstname: req.body.firstname,
+		lastname: req.body.lastname
+	};
+
+  accounts.registerUser(userinfo, function (e, result) {
     if (result.success) {
       res.render('register', {title: 'Taskie', regSuccess: true});
       console.log("'" + req.body.username + "' has registered!");
