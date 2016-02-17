@@ -3,6 +3,7 @@ console.log("Loading accounts.js");
 exports = module.exports = {};
 
 var mysql = require('mysql');
+var database = require('./database');
 var config = require('./config');
 var email = require('./email');
 var bcrypt = require('bcrypt');
@@ -10,16 +11,6 @@ var async = require('async');
 var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 
-var getDatabaseConnection = function () {
-	return mysql.createConnection(
-		{
-			host: config.mysql.host,
-			user: config.mysql.user,
-			password: config.mysql.password,
-			database: config.mysql.database
-		}
-	);
-};
 
 exports.validatePassword = function (password, o, callback) {
 	bcrypt.hash(password, o.salt, function (err, hash) {
@@ -71,15 +62,11 @@ exports.manualLogin = function (user, password, callback) {
 };
 
 exports.getUser = function (user, callback) {
-	var connection = getDatabaseConnection();
-
 	var sql = "SELECT * FROM users WHERE username = ?";
 	var inserts = [user];
 	sql = mysql.format(sql, inserts); 
 
-	connection.connect();
-
-	connection.query(sql, function(err, rows, fields) {
+	database.connectionPool.query(sql, function(err, rows, fields) {
 		if (err) {
 			callback("An error occured looking up user: " + err, null);
 			return;
@@ -92,20 +79,14 @@ exports.getUser = function (user, callback) {
 			}
 		}
 	});
-	
-	connection.end();
 };
 
 exports.useVerficationCode = function (code, callback) {
-	var connection = getDatabaseConnection();
-
 	var sql = "SELECT * FROM `users` WHERE `verification_code`=?";
 	var inserts = [code];
 	sql = mysql.format(sql, inserts); 
 
-	connection.connect();
-
-	connection.query(sql, function(err, rows, fields) {
+	database.connectionPool.query(sql, function(err, rows, fields) {
 		if (err) {
 			callback("An error occured looking up code: " + err, null);
 			return;
@@ -114,8 +95,7 @@ exports.useVerficationCode = function (code, callback) {
 				var sql = "UPDATE `users` SET `verification_code` = '' WHERE `id` = ?";
 				var inserts = [rows[0].id];
 				sql = mysql.format(sql, inserts); 
-				connection.query(sql, function(err, rows, fields) {
-					connection.end();
+				database.connectionPool.query(sql, function(err, rows, fields) {
 					if (err) {
 						callback("An error occured consuming verification code: " + err, null);
 						return;
@@ -124,7 +104,6 @@ exports.useVerficationCode = function (code, callback) {
 				});
 			}
 			else {
-				connection.end();
 				callback(null, false);
 				return;
 			}
@@ -260,14 +239,11 @@ exports.registerUser = function (userinfo, callback) {
 };
 
 exports.addUser = function (userinfo, callback) {
-	var connection = getDatabaseConnection();
 	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`, `verification_code`, `firstname`, `lastname`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);";
 	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt, userinfo.verification_code, userinfo.firstname, userinfo.lastname];
 	sql = mysql.format(sql, inserts); 
 
-	connection.connect();
-
-	connection.query(sql, function(err, rows) {
+	database.connectionPool.query(sql, function(err, rows) {
 		if (err) {
 			callback("An error occured inserting user: " + err, null);
 			return;
@@ -276,8 +252,6 @@ exports.addUser = function (userinfo, callback) {
 			return;
 		}
 	});
-	
-	connection.end();
 };
 
 exports.hashPassword = function (pass, salt, callback) {

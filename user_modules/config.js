@@ -8,8 +8,9 @@ exports.mysql = {
 	host: (system === 'prod') ? '127.0.0.1' : '127.0.0.1' ,
 	user: (system === 'prod') ? 'taskie-user' : 'taskie-user',
 	password: (system === 'prod') ? 'Wj24rV7nGbrJM646' : 'Wj24rV7nGbrJM646',
-	database: (system === 'prod') ? 'taskie' : 'taskie_dev'
-};
+	database: (system === 'prod') ? 'taskie' : 'taskie_dev',
+	connectionLimit: (system === 'prod') ? 10 : 10
+}
 
 exports.session = {
 	secret: (system === 'prod') ? 'yellow-dog-feels-sad' : 'old-purple-hen',
