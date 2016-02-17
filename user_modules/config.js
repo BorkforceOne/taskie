@@ -1,4 +1,4 @@
-// config.jsA
+console.log("Loading config.js");
 
 // Define our system as dev here
 var system = "dev";

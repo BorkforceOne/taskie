@@ -1,3 +1,5 @@
+console.log("Loading config.js");
+
 exports = module.exports = {};
 
 var mysql = require('mysql');
