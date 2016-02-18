@@ -1,46 +1,16 @@
 var express = require('express');
 var router = express.Router();
-var taskAPI = require('../user_modules/tasks');
+var taskAPI = require('../user_modules/tasks.api');
 
 /* GET single task listing. */
-router.get('/tasks/:tid', function(req, res, next) {
-	if (!req.session.uid) {
-		res.send({error: 'authfailure'});
-		return;
-	}
-
-	var params = {
-		uid: req.session.uid,
-		tid: req.params.tid
-	};
-
-	taskAPI.getTask(params, function (err, result) {
-		if (err) {
-  		res.send({error: err});
-			return;
-		}
-  	res.send({result: result});
-	});
-});
+router.route('/tasks/:task_id')
+	.get(taskAPI.getTask)
+	.delete(taskAPI.deleteTask)
+	.put(taskAPI.putTask);
 
 /* GET all user task listing. */
-router.get('/tasks', function(req, res, next) {
-	if (!req.session.uid) {
-		res.send({error: 'authfailure'});
-		return;
-	}
-
-	var params = {
-		uid: req.session.uid,
-	};
-
-	taskAPI.getTasks(params, function (err, result) {
-		if (err) {
-  		res.send({error: err});
-			return;
-		}
-  	res.send({result: result});
-	});
-});
+router.route('/tasks')
+	.get(taskAPI.getTasks)
+	.post(taskAPI.createTask);
 
 module.exports = router;
