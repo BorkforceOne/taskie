@@ -7,7 +7,7 @@ console.log("Loading tasks.api.js");
 
 var getTask = function (req, res) {
 	if (!req.session.uid) {
-		return res.json({error: 'authfailure'});
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
@@ -22,7 +22,7 @@ var getTask = function (req, res) {
 
 var deleteTask = function (req, res) {
 	if (!req.session.uid) {
-		return res.json({error: 'authfailure'});
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
@@ -42,7 +42,7 @@ var deleteTask = function (req, res) {
 */
 var createTask = function (req, res) {
 	if (!req.session.uid) {
-		return res.json({error: 'authfailure'});
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
@@ -66,7 +66,7 @@ var createTask = function (req, res) {
 */
 var putTask = function (req, res) {
 	if (!req.session.uid) {
-		return res.json({error: 'authfailure'});
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
@@ -91,7 +91,7 @@ var putTask = function (req, res) {
 */
 var getTasks = function (req, res) {
 	if (!req.session.uid) {
-		return res.json({error: 'authfailure'});
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {

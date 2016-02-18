@@ -191,4 +191,5 @@ module.exports = {
 	createTask: createTask,
 	deleteTask: deleteTask,
 	updateTask: updateTask,
+	createResponse: createResponse
 };
