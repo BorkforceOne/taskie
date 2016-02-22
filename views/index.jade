@@ -2,6 +2,7 @@ extends layout
 
 block head-content
   link(rel='stylesheet', href='/stylesheets/index.css')
+  script(src='/javascripts/taskie.js')
 
 block content
   div.col-sm-12
@@ -10,19 +11,4 @@ block content
     div.alert.alert-success
       |Welcome, #{user}
     a.btn.btn-lg.btn-block.btn-success(role='button', href='logout') Sign Out
-    div.panel.panel-info
-      div.panel-heading
-        div.panel-title
-          button.btn.btn-xs.btn-info(aria-label="Plus")
-            span.glyphicon.glyphicon-plus(aria-hidden="true")
-          |&nbsp;Task 1
-      div.panel-body
-        div.panel.panel-info
-          div.panel-heading
-            div.panel-title
-              button.btn.btn-xs.btn-info(aria-label="Plus")
-                span.glyphicon.glyphicon-plus(aria-hidden="true")
-              |&nbsp;Task 2
-          div.panel-body
-            |Do stuff!
-        |Do other stuff!
+  div.app
