@@ -1,6 +1,7 @@
 var config = require('./config.js');
 var database = require('./database.js');
 var mysql = require('mysql');
+var email = require('./email');
 
 console.log("Loading tasks.js");
 
@@ -181,6 +182,56 @@ var getTasks = function (params, cb) {
   });
 };
 
+/*
+* getNotifTasks
+*
+*/
+var getNotifTasks = function (cb) {
+	var sql = "SELECT `TaskID`, `UserID`, `TaskTitle`, `TaskDesc`, `TaskDueDate`, `RecordStatus`, `username`, `firstname`, `lastname`, `email`, `TaskLastNotifDate` FROM `tasks` LEFT OUTER JOIN `users` ON `tasks`.`UserID` = `users`.`id` WHERE `RecordStatus` = 1 AND DATEDIFF(CURRENT_DATE, `TaskDueDate`) < 5 AND (DATEDIFF(CURRENT_DATE, `TaskLastNotifDate`) >= 1 OR `TaskLastNotifDate` IS NULL)";
+	
+  database.connectionPool.query(sql, function(err, rows, fields) {
+    if (err) {
+			console.error('ERROR [tasks.js]: %s', err);
+			return cb(err, createResponse(false, ['task-lookup-error'], {}));
+    }
+		return cb(null, createResponse(true, [], rows));
+  });
+};
+
+/*
+ *sendNotifTask
+ *
+*/
+var sendNotifTask = function (params, cb) {
+	var sql = "UPDATE `tasks` SET `TaskLastNotifDate` = CURRENT_TIMESTAMP WHERE `TaskID` = ?";
+	var sql_inserts = [params.task_id];
+
+  sql = mysql.format(sql, sql_inserts);
+
+	database.connectionPool.query(sql, function(err, rows, fields) {
+    if (err) {
+      console.error('ERROR [tasks.js]: %s', err);
+    }
+  });
+
+	/*
+	email.sendEmail({
+		template: email.mailTemplates.task_notification,
+		mailTo: params.email,
+		subject: 'Taskie - Upcoming Task',
+		vars: {
+			name: params.firstname,
+			task_name: params.task_name,
+			task_desc: params.task_desc,
+			task_due_date: params.task_due_date,
+			application: 'Taskie',
+			}
+		}, function (err, results) {
+		console.log(results.response);
+	});
+	*/
+};
+
 var createResponse = function (success, messages, data) {
 	return {success: success, messages: messages, data: data};
 }
@@ -191,5 +242,7 @@ module.exports = {
 	createTask: createTask,
 	deleteTask: deleteTask,
 	updateTask: updateTask,
-	createResponse: createResponse
+	createResponse: createResponse,
+	getNotifTasks: getNotifTasks,
+	sendNotifTask: sendNotifTask,
 };

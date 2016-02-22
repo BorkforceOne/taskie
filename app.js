@@ -10,6 +10,7 @@ var knex = require('knex');
 var KnexSessionStore = require('connect-session-knex')(session);
 var routes = require('./routes/index');
 var apiV1 = require('./routes/api.v1');
+var tasks = require('./user_modules/tasks.js');
 
 var knexSql = new knex({
 	client: 'mysql',
@@ -83,6 +84,30 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+var taskNotify = function () {
+	console.log("Looking up due tasks...");
+	tasks.getNotifTasks(function (err, results) {
+		if (results.success) {
+			for (var i=0; i<results.data.length; i++) {
+				var data = results.data[i];
+				var params = {
+					task_id: data.TaskID,
+					email: data.email,
+					task_desc: data.TaskDesc,
+					task_due_date: data.TaskDueDate,
+					task_name: data.TaskTitle
+				}
+				
+				tasks.sendNotifTask(params, null);
+				console.log("Sending task notification for task_id: " + params.task_id);
+			}
+		}
+	});
+};
+
+setInterval(taskNotify, 300000);
+taskNotify();
 
 
 module.exports = app;
