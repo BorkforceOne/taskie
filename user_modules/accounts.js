@@ -13,11 +13,11 @@ var nodemailer = require('nodemailer');
 
 
 exports.validatePassword = function (password, o, callback) {
-	bcrypt.hash(password, o.salt, function (err, hash) {
+	bcrypt.hash(password, o.Salt, function (err, hash) {
 		if (err) {
 			callback(err);
 		}
-		else if (hash == o.password) {
+		else if (hash == o.Password) {
 			callback(null, true);
 		}
 		else {
@@ -56,13 +56,14 @@ exports.manualLogin = function (user, password, callback) {
 			});
 		}
 		else {
+			console.log("No user found");
 			callback(null);
 		}
 	});
 };
 
 exports.getUser = function (user, callback) {
-	var sql = "SELECT * FROM users WHERE username = ?";
+	var sql = "SELECT * FROM `Users` WHERE `Username` = ?";
 	var inserts = [user];
 	sql = mysql.format(sql, inserts); 
 
@@ -82,7 +83,7 @@ exports.getUser = function (user, callback) {
 };
 
 exports.useVerficationCode = function (code, callback) {
-	var sql = "SELECT * FROM `users` WHERE `verification_code`=?";
+	var sql = "SELECT * FROM `Users` WHERE `VerificationCode`=?";
 	var inserts = [code];
 	sql = mysql.format(sql, inserts); 
 
@@ -92,8 +93,8 @@ exports.useVerficationCode = function (code, callback) {
 			return;
 		} else {
 			if (rows.length == 1) {
-				var sql = "UPDATE `users` SET `verification_code` = '' WHERE `id` = ?";
-				var inserts = [rows[0].id];
+				var sql = "UPDATE `Users` SET `VerificationCode` = '' WHERE `UserID` = ?";
+				var inserts = [rows[0].UserID];
 				sql = mysql.format(sql, inserts); 
 				database.connectionPool.query(sql, function(err, rows, fields) {
 					if (err) {
@@ -239,7 +240,7 @@ exports.registerUser = function (userinfo, callback) {
 };
 
 exports.addUser = function (userinfo, callback) {
-	var sql = "INSERT INTO `users` (`id`, `username`, `password`, `email`, `salt`, `verification_code`, `firstname`, `lastname`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);";
+	var sql = "INSERT INTO `Users` (`UserID`, `Username`, `Password`, `Email`, `Salt`, `VerificationCode`, `Firstname`, `Lastname`) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?);";
 	var inserts = [userinfo.username, userinfo.password, userinfo.email, userinfo.salt, userinfo.verification_code, userinfo.firstname, userinfo.lastname];
 	sql = mysql.format(sql, inserts); 
 

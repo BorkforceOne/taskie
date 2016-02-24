@@ -58,16 +58,15 @@ router.post('/login', function(req, res, next) {
 
   accounts.manualLogin(req.body.username, req.body.password, function (e, o) {
 		if (o) {
-			req.session.username = o.username;
-			req.session.uid = o.id;
+			req.session.username = o.Username;
+			req.session.uid = o.UserID;
 			req.session.loggedin = true;
     	res.redirect('/');
-			console.log("'" + o.username + "' has logged in!");
+			console.log("'" + o.Username + "' has logged in!");
 			return;
 		}
 		else {
   		res.render('login', {title: 'Taskie', auth: false});
-			console.log("Login for '" + req.body.user + "' failed!");
 		}
 	});
 

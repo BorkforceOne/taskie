@@ -8,16 +8,7 @@ console.log("Loading tasks.js");
 var jsonifyTask = function (entry) {
 	return {
 			type: 'task',
-			data: {
-				id: entry.TaskID,
-				title: entry.TaskTitle,
-				desc: entry.TaskDesc,
-				tag: entry.TaskTag,
-				parent_id: entry.ParentTaskID,
-				date_due: entry.TaskDueDate,
-				date_create: entry.TaskAddedOnDate,
-				date_update: entry.TaskUpdatedOnDate
-			}
+			data: entry
 		}
 }
 
@@ -35,7 +26,7 @@ var jsonifyTasks = function (entries) {
 * 
 */
 var getTask = function (params, cb) {
-  var sql = "SELECT `TaskID`,`TaskTitle`,`TaskDesc`,`TaskTag`,`RecordStatus`,`ParentTaskID`,`TaskDueDate`,`TaskAddedOnDate`,`TaskUpdatedOnDate` FROM tasks WHERE TaskID = ? AND UserID = ?";
+  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated` FROM Tasks WHERE TaskID = ? AND UserID = ?";
   var inserts = [params.tid, params.uid];
   sql = mysql.format(sql, inserts);
 
@@ -54,7 +45,7 @@ var getTask = function (params, cb) {
 * 
 */
 var deleteTask = function (params, cb) {
-  var sql = "DELETE FROM `tasks` WHERE `TaskID` = ? AND `UserID` = ?";
+  var sql = "DELETE FROM `Tasks` WHERE `TaskID` = ? AND `UserID` = ?";
   var inserts = [params.tid, params.uid];
   sql = mysql.format(sql, inserts);
 
@@ -76,8 +67,8 @@ var deleteTask = function (params, cb) {
 * 
 */
 var createTask = function (params, cb) {
-  var sql = "INSERT INTO `tasks` (`UserID`, `TaskTitle`, `TaskDesc`, `ParentTaskID`, `TaskDueDate`, `TaskTag`) VALUES (?, ?, ?, ?, ?, ?);";
-  var inserts = [params.uid, params.task_title, params.task_desc, params.task_parent_id, params.task_date_due, params.task_tag];
+  var sql = "INSERT INTO `Tasks` (`UserID`, `Title`, `Description`, `ParentTaskID`, `DateDue`) VALUES (?, ?, ?, ?, ?);";
+  var inserts = [params.uid, params.task_title, params.task_desc, params.task_parent_id, params.task_date_due];
   sql = mysql.format(sql, inserts);
 
   database.connectionPool.query(sql, function(err, rows, fields) {
@@ -111,27 +102,23 @@ var updateTask = function (params, cb) {
 	var sql_inserts = [];
 	
 	if (params.title != undefined) {
-		sql_updates.push("`TaskTitle` = ?");
+		sql_updates.push("`Title` = ?");
 		sql_inserts.push(params.title);
 	}
 	if (params.desc != undefined) {
-		sql_updates.push("`TaskDesc` = ?");
+		sql_updates.push("`Description` = ?");
 		sql_inserts.push(params.desc);
-	}
-	if (params.tag != undefined) {
-		sql_updates.push("`TaskTag` = ?");
-		sql_inserts.push(params.tag);
 	}
 	if (params.parent_id != undefined) {
 		sql_updates.push("`ParentTaskID` = ?");
 		sql_inserts.push(params.parent_id);
 	}
 	if (params.date_due != undefined) {
-		sql_updates.push("`TaskDueDate` = ?");
+		sql_updates.push("`DateDue` = ?");
 		sql_inserts.push(params.date_due);
 	}
 
-	var sql = "UPDATE `tasks` SET ";
+	var sql = "UPDATE `Tasks` SET ";
 	sql += sql_updates.join(', ');
 	sql += " WHERE `TaskID`=? AND `UserID`=?;"
 
@@ -169,7 +156,7 @@ var updateTask = function (params, cb) {
 * 
 */
 var getTasks = function (params, cb) {
-  var sql = "SELECT `TaskID`,`TaskTitle`,`TaskDesc`,`TaskTag`,`RecordStatus`,`ParentTaskID`,`TaskDueDate`,`TaskAddedOnDate`,`TaskUpdatedOnDate` FROM tasks WHERE UserID = ?";
+  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated` FROM Tasks WHERE UserID = ?";
   var inserts = [params.uid];
   sql = mysql.format(sql, inserts);
 

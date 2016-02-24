@@ -106,8 +106,8 @@ var taskNotify = function () {
 	});
 };
 
-setInterval(taskNotify, 300000);
-taskNotify();
+//setInterval(taskNotify, 300000);
+//taskNotify();
 
 
 module.exports = app;
