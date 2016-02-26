@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var taskAPI = require('../user_modules/tasks.api');
+var userAPI = require('../user_modules/users.api');
 
 /* GET single task listing. */
 router.route('/tasks/:task_id')
@@ -12,5 +13,14 @@ router.route('/tasks/:task_id')
 router.route('/tasks')
 	.get(taskAPI.getTasks)
 	.post(taskAPI.createTask);
+
+router.route('/users/login')
+	.post(userAPI.userLogin);
+
+router.route('/users/create')
+	.post(userAPI.userCreate);
+
+router.route('/users/verify')
+	.post(userAPI.userVerify);
 
 module.exports = router;

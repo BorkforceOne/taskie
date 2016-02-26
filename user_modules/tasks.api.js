@@ -6,12 +6,12 @@ var mysql = require('mysql');
 console.log("Loading tasks.api.js");
 
 var getTask = function (req, res) {
-	if (!req.session.uid) {
+	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
-		uid: req.session.uid,
+		uid: req.session.user.UserID,
 		tid: req.params.task_id
 	};
 	
@@ -21,12 +21,12 @@ var getTask = function (req, res) {
 };
 
 var deleteTask = function (req, res) {
-	if (!req.session.uid) {
+	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
-		uid: req.session.uid,
+		uid: req.session.user.UserID,
 		tid: req.params.task_id
 	};
 	
@@ -41,12 +41,12 @@ var deleteTask = function (req, res) {
 * 
 */
 var createTask = function (req, res) {
-	if (!req.session.uid) {
+	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
-		uid: req.session.uid,
+		uid: req.session.user.UserID,
 		task_title: req.body.title,
 		task_desc: req.body.desc,
 		task_parent_id: req.body.parent_id,
@@ -65,12 +65,12 @@ var createTask = function (req, res) {
 * 
 */
 var putTask = function (req, res) {
-	if (!req.session.uid) {
+	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
-		uid: req.session.uid,
+		uid: req.session.user.UserID,
 		tid: req.params.task_id,
 		title: req.body.title,
 		desc: req.body.desc,
@@ -90,12 +90,12 @@ var putTask = function (req, res) {
 * 
 */
 var getTasks = function (req, res) {
-	if (!req.session.uid) {
+	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
 	}
 
 	var params = {
-		uid: req.session.uid,
+		uid: req.session.user.UserID,
 	};
 
 	tasks.getTasks(params, function (err, result) {

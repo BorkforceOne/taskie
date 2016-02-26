@@ -1,11 +1,12 @@
 //This is the main taskie app JS file
 // This is another comment in here
-
+// Hello world this is graffiti. 
 window.onload = function () {
 	$.ajax({url: "/api/v1/tasks", success: function(result){
 		console.log(result);
 		for (var i=0; i<result.data.length; i++) {
-			$( ".app" ).append( "<p>" + result.data[i].data.title + "</p><br>" );
+			$( ".app" ).append( "<p>" + result.data[i].data.Title + "</p><br>" );
+			$( ".app" ).append( "<p> 	Due date: " + result.data[i].data.DateDue + " </p>");
 		}
 	}});
 
@@ -14,6 +15,7 @@ window.onload = function () {
 	});
 };
 
+// Creating a new task from the user. 
 var addNewTask = function () {
 
 	var taskTitle = $("#task_title").val();

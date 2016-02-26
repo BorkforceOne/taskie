@@ -18,7 +18,7 @@ exports.session = {
 	saveUninitialized: true,
 	cookie: {
 		//                                   (7 days)         (1 hour)
-		maxAge: (system === 'prod') ? (168*(3600*(1000))) : (1*(3600*1000)),
+		maxAge: (system === 'prod') ? (168*(3600*(1000))) : (168*(3600*(1000))),
 	}
 };
 
