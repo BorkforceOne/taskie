@@ -1,0 +1,20 @@
+extends layout
+
+block head-content
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  script(src='/javascripts/taskie.js')
+  script(src='https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js')
+
+block content
+  div.col-sm-12
+    div.title
+      h1= title
+    div.alert.alert-success
+      |Welcome, #{user}
+    a.btn.btn-lg.btn-block.btn-success(role='button', href='logout') Sign Out
+  div.col-sm-12.col-xs-12
+        input.form-control(type='text', id='task_title', name='task_name', placeholder='Task Name', required='', autofocus='')
+        input.form-control(type='text', id='task_desc', name='task_desc', placeholder='Task Description', required='', autofocus='')
+        br.
+        button.btn.btn-lg.btn-block.sharp.btn-success(id='add_task', type='submit') Add Task
+  div.app
