@@ -38,11 +38,3 @@
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
-
-.btn.sharp {
-	border-radius: 0;
-}
-
-.btn.half-span {
-	width: 49%;
-}

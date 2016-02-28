@@ -20,3 +20,10 @@ footer {
   font: 12px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
+.btn.sharp {
+	border-radius: 0;
+}
+
+.btn.half-span {
+	width: 49%;
+}

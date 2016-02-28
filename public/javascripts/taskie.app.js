@@ -25,7 +25,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			});
 	})
 
-  .controller('LoginController', ['$scope', '$http', function($scope, $http) {
+  .controller('LoginController', ['$scope', '$http', '$location', function($scope, $http, $location) {
     $scope.userinfo = {};
 
     $scope.userinfo.username = "";
@@ -51,7 +51,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
             then(function(resp) {
               var response = resp.data;
 							if (response.success) {
-								window.setTimeout(function() {location.href = "/"} ,5000); // Redirect after 5 seconds!
+								$location.path("");
 							}
 							$scope.status = resp.status;
               $scope.response = response;
@@ -239,7 +239,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 		$scope.getTasks = getTasks;
 		$scope.delTask = delTask;
   }])
-  .controller('RegisterController', ['$scope', '$http', function($scope, $http) {
+  .controller('RegisterController', ['$scope', '$http', '$location', function($scope, $http, $location) {
     $scope.userinfo = {};
 
     $scope.userinfo.username = "";
@@ -275,7 +275,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
             then(function(resp) {
               var response = resp.data;
 							if (response.success) {
-								window.setTimeout(function() {location.href = "/"} ,5000); // Redirect after 5 seconds!
+								$location.path("");
 							}
 							$scope.status = resp.status;
               $scope.response = response;

@@ -1,3 +1,9 @@
+<div class="container">
+	<div class='col-sm-12'>
+		<a href="/logout" class="btn btn-ms btn-success pull-right">Sign Out</a>
+	</div>
+</div>
+
 <div class="title">
 		<h1>Taskie</h1>
 </div>
@@ -16,19 +22,21 @@
 	</div>
 </script>
 
-<uib-accordion close-others="oneAtATime">
-	<uib-accordion-group ng-repeat="task in tasks" is-open="status.open">
-		<uib-accordion-heading>
-			<b>{{task.data.Title}}</b>
-			<span class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></span>
-			<button type="button" class="btn btn-danger pull-right btn-xs" data-type="minus" ng-click="delTask(task.data.TaskID)">
-				<span class="glyphicon glyphicon-minus"></span>
-			</button>
-			<b class="pull-right">{{task.data.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
-		</uib-accordion-heading>
-		{{task.data.Description}}
-	</uib-accordion-group>
-</uib-accordion>
+<div class="container">
+	<uib-accordion close-others="oneAtATime">
+		<uib-accordion-group ng-repeat="task in tasks" is-open="status.open">
+			<uib-accordion-heading>
+				<b>{{task.data.Title}}</b>
+				<span class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></span>
+				<button type="button" class="pull-right btn btn-danger btn-xs" data-type="minus" ng-click="delTask(task.data.TaskID)">
+					<span class="glyphicon glyphicon-minus"></span>
+				</button>
+				<b class="pull-right">{{task.data.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
+			</uib-accordion-heading>
+			{{task.data.Description}}
+		</uib-accordion-group>
+	</uib-accordion>
+</div>
 
 <div class="container">
 	<div class="row">
@@ -42,7 +50,7 @@
 			<input type='text' placeholder="Due Datetime" class="form-control" id='datetimepicker'/>
 		</div>
 		<div class='col-sm-2'>
-			<a target="_blank" class="btn btn-lg half-span btn-success" ng-click="addTask()">Add Task</a>
+			<a target="_blank" class="btn btn-lg btn-success" ng-click="addTask()">Add Task</a>
 		</div>
 		<script type="text/javascript">
 			$(function () {
@@ -51,5 +59,3 @@
 		</script>
 	</div>
 </div>
-
-<a href="/logout" class="btn btn-lg half-span btn-success">Sign Out</a>
