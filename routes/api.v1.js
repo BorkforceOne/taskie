@@ -3,17 +3,17 @@ var router = express.Router();
 var taskAPI = require('../user_modules/tasks.api');
 var userAPI = require('../user_modules/users.api');
 
-/* GET single task listing. */
+/* Handle tasks */
 router.route('/tasks/:task_id')
 	.get(taskAPI.getTask)
 	.delete(taskAPI.deleteTask)
 	.put(taskAPI.putTask);
 
-/* GET all user task listing. */
 router.route('/tasks')
 	.get(taskAPI.getTasks)
 	.post(taskAPI.createTask);
 
+/* Handle users */
 router.route('/users/login')
 	.post(userAPI.userLogin);
 

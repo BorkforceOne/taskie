@@ -1,12 +1,19 @@
-var config = require('./config.js');
+/*
+ * tasks.js
+ *
+ * Perform all task related procedures here. 
+ * Actually do the changes and the lookups
+ * to and from the database!
+ */
+
+console.log("Loading users.js");
+
 var database = require('./database.js');
 var mysql = require('mysql');
 var email = require('./email');
 var bcrypt = require('bcrypt');
 var async = require('async');
 var crypto = require('crypto');
-
-console.log("Loading users.js");
 
 var scrubUser = function (user, cb) {
 	return { Username : user.Username,

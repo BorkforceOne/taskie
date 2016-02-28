@@ -1,9 +1,16 @@
-var config = require('./config.js');
+/*
+ * tasks.js
+ *
+ * Perform all task related procedures here. 
+ * Actually do the changes and the lookups
+ * to and from the database!
+ */
+
+console.log("Loading tasks.js");
+
 var database = require('./database.js');
 var mysql = require('mysql');
 var email = require('./email');
-
-console.log("Loading tasks.js");
 
 var jsonifyTask = function (entry) {
 	return {

@@ -11,9 +11,11 @@ router.get('/', function(req, res, next) {
   return res.redirect('/html/login.html');
 });
 
+/* GET logout page. */
+// Destroys the user's cookie server side and client side
 router.get('/logout', function(req, res, next) {
 	req.session.destroy();
-	return res.redirect('/');
+	return res.redirect('/'); // Redirect to the root after it's done
 });
 
 

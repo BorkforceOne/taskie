@@ -1,6 +1,15 @@
-var users = require('./users.js');
+/*
+ * users.api.js
+ *
+ * Simple API procedures that will call functions
+ * from users.js to accomplish their goals. Also
+ * ensures users are authenticated (when appropriate)
+ *  prior to running any user.js code.
+ */
 
 console.log("Loading users.api.js");
+
+var users = require('./users.js');
 
 /*
 * getUser()

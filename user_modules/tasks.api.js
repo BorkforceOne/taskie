@@ -1,9 +1,15 @@
-var config = require('./config.js');
-var database = require('./database.js');
-var tasks = require('./tasks.js');
-var mysql = require('mysql');
+/*
+ * tasks.api.js
+ *
+ * Simple API procedures that will call functions
+ * from tasks.js to accomplish their goals. Also
+ * ensures users are authenticated prior to running
+ * any tasks.js code.
+ */
 
 console.log("Loading tasks.api.js");
+
+var tasks = require('./tasks.js');
 
 var getTask = function (req, res) {
 	if (!req.session.user) {

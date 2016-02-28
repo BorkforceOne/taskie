@@ -1,8 +1,18 @@
+/*
+ * email.js
+ *
+ * Abstract some functions away from
+ * nodemailer and use this as the main
+ * access point for sending emails. 
+ * Templates can be loaded here directly.
+ * (TODO: Create a way to load templates externally)
+ */
+
+console.log("Loading email.js");
+
 var config = require('./config.js');
 var nodemailer = require('nodemailer');
 var EmailTemplate = require('email-templates').EmailTemplate
-
-console.log("Loading email.js");
 
 // Create the main mail transporter
 var mailTransporter = nodemailer.createTransport(config.email_account.no_reply);

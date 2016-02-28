@@ -1,3 +1,11 @@
+/*
+ * config.js
+ *
+ * Load settings based on system type,
+ * these are exported for other modules
+ * to use.
+ */
+
 console.log("Loading config.js");
 
 // Define our system as dev here

@@ -1,7 +1,14 @@
-var config = require('./config.js');
-var mysql = require('mysql');
+/*
+ * database.js
+ *
+ * Handle creating the connection pool with 
+ * paramters defined in the config file.
+ */
 
 console.log("Loading database.js");
+
+var config = require('./config.js');
+var mysql = require('mysql');
 
 var connectionPool  = mysql.createPool({
 			connectionLimit : config.mysql.connectionLimit,
