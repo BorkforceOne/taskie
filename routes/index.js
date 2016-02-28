@@ -5,10 +5,7 @@ var bcrypt = require('bcrypt');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-	if (req.session.user) {
-  	return res.render('index', {title: 'Taskie', user: req.session.user.Firstname});
-	}
-  return res.redirect('/html/login.html');
+	res.sendFile('index.html', {root: __dirname + "/../public/html/"});
 });
 
 /* GET logout page. */

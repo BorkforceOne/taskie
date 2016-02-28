@@ -75,6 +75,9 @@ var deleteTask = function (params, cb) {
 */
 var createTask = function (params, cb) {
   var sql = "INSERT INTO `Tasks` (`UserID`, `Title`, `Description`, `ParentTaskID`, `DateDue`) VALUES (?, ?, ?, ?, ?);";
+
+	params.task_date_due = new Date(params.task_date_due);
+
   var inserts = [params.uid, params.task_title, params.task_desc, params.task_parent_id, params.task_date_due];
   sql = mysql.format(sql, inserts);
 
