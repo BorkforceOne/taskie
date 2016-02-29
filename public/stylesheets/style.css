@@ -27,3 +27,7 @@ footer {
 .btn.half-span {
 	width: 49%;
 }
+
+a.accordion-toggle {
+	outline: none;
+}
