@@ -9,7 +9,7 @@
 </div>
 
 <div class="container">
-	<uib-accordion>
+	<uib-accordion close-others=false>
 		<uib-accordion-group ng-repeat="task in tasks" is-open="status.open" panel-class="panel-info">
 			<uib-accordion-heading>
 				<b>{{task.data.Title}}</b>
