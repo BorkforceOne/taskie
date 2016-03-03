@@ -226,14 +226,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			});
 		};
 
-		getTasks(function (err, data) {
-			for (var i=0; i<data.messages.length; i++) {
-				console.log(data.messages[i]);
-				if (data.messages[i] == 'auth-failure') {
-					$location.path("login");
-				}
-			}
-		});
+		getTasks();
 
 		$scope.addTask = addTask;
 		$scope.getTasks = getTasks;
