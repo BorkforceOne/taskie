@@ -1,0 +1,20 @@
+<div class="modal-header">
+		<h3 class="modal-title">Add/Modify Task</h3>
+</div>
+<div class="modal-body">
+	<div class='row'>
+		<div class='col-sm-3'>
+			<input type='text' ng-model="task.Title" placeholder="Title" class="form-control"/>
+		</div>
+		<div class='col-sm-6'>
+			<textarea rows="2" ng-model="task.Description" placeholder="Description" class="form-control"/>
+		</div>
+		<div class='col-sm-3'>
+			<input type='text' ng-init="initDatetime()" placeholder="Due Datetime" class="form-control" id='datetimepicker'/>
+		</div>
+	</div>
+</div>
+<div class="modal-footer">
+		<button class="btn btn-primary" type="button" ng-click="ok()">Go</button>
+		<button class="btn btn-warning" type="button" ng-click="cancel()">Cancel</button>
+</div>

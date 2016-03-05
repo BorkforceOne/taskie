@@ -62,7 +62,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           });
         };
   }])
-  .controller('IndexController', ['$scope', '$http', '$location', function($scope, $http, $location) {
+  .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', function($scope, $http, $location, $uibModal) {
 		
 		/* Define $scope variables that will be used here */
 
@@ -100,6 +100,26 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			var req = {
 				method: 'POST',
 				url: '/api/v1/tasks',
+				data: JSON.stringify({
+					desc: data.description,
+					title: data.title,
+					date_due: data.datetime_due,
+				}),
+				headers: {'Content-Type': 'application/json'}
+			}
+			
+			return $http(req).
+				then(function(resp) {
+					return cb(null, resp.data);
+				}, function(resp) {
+					return cb(resp.status, resp.data);
+			});
+		};
+
+		api.updateTask = function (data, cb) {
+			var req = {
+				method: 'PUT',
+				url: '/api/v1/tasks/' + data.task_id,
 				data: JSON.stringify({
 					desc: data.description,
 					title: data.title,
@@ -165,14 +185,11 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			});
 		};
 
-		var addTask = function () {
-			var datetime = moment.utc($('#datetimepicker').data("DateTimePicker").date()).toISOString();
-			console.log(datetime);
-
+		var addTask = function (title, description, datetime_due) {
 			var data = {
-				description: $scope.addtask.description,
-				title: $scope.addtask.title,
-				datetime_due: datetime,
+				title: title,
+				description: description,
+				datetime_due: datetime_due,
 			};
 
 			api.addTask(data, function (err, result) {
@@ -195,11 +212,48 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 				if (result.success) {
 					// Set the tasks to the list we just got back!
 					$scope.tasks = $scope.tasks.concat(result.data);
-					console.log($scope.tasks);
 				}
 			});
 		};
 
+		var updateTask = function (task_id, title, description, datetime_due) {
+			var data = {
+				task_id: task_id,
+				title: title,
+				description: description,
+				datetime_due: datetime_due,
+			};
+
+			api.updateTask(data, function (err, result) {
+				if (err) {
+					//Handle JS errors here!
+				};
+				// Check the messages and ensure that everything went alright
+				// redirect on a auth-failure
+				// TODO: Seperate this out to a seperate function that processes
+				//       all messages and performs the correct action based on that.
+				for (var i=0; i<result.messages.length; i++) {
+					console.log(result.messages[i]);
+					if (result.messages[i] == 'auth-failure') {
+						$location.path("login");
+					}
+				}
+
+				// See if we actually got what we were expecting, despite possible
+				// messages from the server.
+				if (result.success) {
+					// Set the tasks to the list we just got back!
+					var new_tasks = [];
+					for (var i=0; i<$scope.tasks.length; i++) {
+						if ($scope.tasks[i].data.TaskID == task_id)
+							new_tasks.push(result.data[0]);
+						else
+							new_tasks.push($scope.tasks[i]);
+					}
+					$scope.tasks = new_tasks;
+				}
+			});
+		};
 
 		var getTasks = function () {
 			api.getTasks(function (err, result) {
@@ -226,9 +280,39 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			});
 		};
 
+		$scope.showTaskModal = function(task) {
+			var modalInstance = $uibModal.open({
+				templateUrl: '/html/views/modals/task.html',
+				controller: 'ModalTaskController',
+				size: 'lg',
+				resolve: {
+					task: function () {
+						return task;
+					}
+				}
+			});
+
+			modalInstance.result.then(function (task) {
+				if (task.TaskID == undefined) {
+					addTask(task.Title, task.Description, task.DateDue);
+				}
+				else {
+					updateTask(task.TaskID, task.Title, task.Description, task.DateDue);
+				}
+			}, function () {
+				console.log('Modal dismissed at: ' + new Date());
+			});
+		};
+		
+		$scope.taskGetDueDate = function (task) {
+			return moment(task.data.DateDue);
+		}
+
+
 		getTasks();
 
 		$scope.addTask = addTask;
+		$scope.updateTask = updateTask;
 		$scope.getTasks = getTasks;
 		$scope.delTask = delTask;
   }])
@@ -278,4 +362,31 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
               $scope.status = response.status;
           });
         };
-  }]);
+  }])
+	.controller('ModalTaskController', function ($scope, $uibModalInstance, task) {
+		
+		if (task == undefined)
+			task = {};
+		$scope.task = task;
+
+		$scope.initDatetime = function () {
+			$('#datetimepicker').datetimepicker();
+			if (task.DateDue) {
+				$('#datetimepicker').data("DateTimePicker").date(moment(task.DateDue));
+			}
+			else {
+				$('#datetimepicker').data("DateTimePicker").date(new Date());
+			}
+		};
+
+		$scope.ok = function () {
+			// Set datetime_due here because it cannot directly modify a ng-model
+			$scope.task.DateDue = moment.utc($('#datetimepicker').data("DateTimePicker").date()).toISOString();
+			// Return what's changed
+			$uibModalInstance.close($scope.task);
+		};
+
+		$scope.cancel = function () {
+			$uibModalInstance.dismiss('cancel');
+		};
+	});

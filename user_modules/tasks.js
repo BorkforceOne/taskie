@@ -125,6 +125,7 @@ var updateTask = function (params, cb) {
 	}
 	if (params.date_due != undefined) {
 		sql_updates.push("`DateDue` = ?");
+		params.date_due = new Date(params.date_due);
 		sql_inserts.push(params.date_due);
 	}
 
