@@ -33,7 +33,7 @@
 		</div>
 		<div class="panel-body">
 			<uib-accordion close-others=false>
-				<uib-accordion-group template-url="group-template.html" ng-repeat="task in tasks | orderBy: taskGetDueDate" is-open="status.open" panel-class="{{((task.data.Status == 1) ? 'panel-info' : '')}}">
+				<uib-accordion-group template-url="group-template.html" ng-repeat="task in tasks | orderBy: taskGetDueDate" is-open="status.open">
 					<uib-accordion-heading-pre-toggle>
 						<a target="_blank" class="btn btn-xs" ng-click="updateTask(task.data.TaskID, undefined, undefined, undefined, ((task.data.Status == 1) ? 2 : 1))">
 							<span class="glyphicon" style="font-size: 16px" ng-class="{'glyphicon-check': task.data.Status == 2, 'glyphicon-unchecked': task.data.Status == 1}"></span>
