@@ -123,6 +123,10 @@ var updateTask = function (params, cb) {
 		sql_updates.push("`ParentTaskID` = ?");
 		sql_inserts.push(params.parent_id);
 	}
+	if (params.status != undefined) {
+		sql_updates.push("`Status` = ?");
+		sql_inserts.push(params.status);
+	}
 	if (params.date_due != undefined) {
 		sql_updates.push("`DateDue` = ?");
 		params.date_due = new Date(params.date_due);

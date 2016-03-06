@@ -124,6 +124,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 					desc: data.description,
 					title: data.title,
 					date_due: data.datetime_due,
+					status: data.status
 				}),
 				headers: {'Content-Type': 'application/json'}
 			}
@@ -147,6 +148,39 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 					return cb(null, resp.data);
 				}, function(resp) {
 					return cb(resp.status, resp.data);
+			});
+		};
+
+		var processMessages = function (messages) {
+			var niceMessages = [];
+			for (var i=0; i<messages.length; i++) {
+				console.log(result.messages[i]);
+				switch (result.messages[i]) {
+					case 'auth-failure':
+						$location.path("login");
+						break;
+
+					default:
+						niceMessages.push(messages[i]);
+						break;
+				}
+			}
+			
+			if (niceMessages.length > 0) {
+				showMessagesModal(niceMessages);
+			}
+		};
+
+		var showMessagesModal = function (messages) {
+			var modalInstance = $uibModal.open({
+				templateUrl: '/html/views/modals/messages.html',
+				controller: 'ModalMessagesController',
+				size: 'lg',
+				resolve: {
+					messages: function () {
+						return messages;
+					}
+				}
 			});
 		};
 
@@ -216,12 +250,13 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			});
 		};
 
-		var updateTask = function (task_id, title, description, datetime_due) {
+		var updateTask = function (task_id, title, description, datetime_due, status) {
 			var data = {
 				task_id: task_id,
 				title: title,
 				description: description,
 				datetime_due: datetime_due,
+				status: status
 			};
 
 			api.updateTask(data, function (err, result) {
@@ -243,14 +278,13 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 				// messages from the server.
 				if (result.success) {
 					// Set the tasks to the list we just got back!
-					var new_tasks = [];
 					for (var i=0; i<$scope.tasks.length; i++) {
-						if ($scope.tasks[i].data.TaskID == task_id)
-							new_tasks.push(result.data[0]);
-						else
-							new_tasks.push($scope.tasks[i]);
+						if ($scope.tasks[i].data.TaskID == task_id) {
+							var task = $scope.tasks[i];
+							task.data = result.data[0].data;
+							break;
+						}
 					}
-					$scope.tasks = new_tasks;
 				}
 			});
 		};
