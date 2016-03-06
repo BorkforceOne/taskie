@@ -2,16 +2,16 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto);
 
 body {
-	font-family: 'Roboto', sans-serif;
-	font-size: 1em;
+  font-family: 'Roboto', sans-serif;
+  font-size: 1em;
   padding-top: 40px;
   padding-bottom: 40px;
   background-color: #eee;
 }
 
 .title {
-	font-family: 'Paytone One', sans-serif;
-	font-size: 2em;
+  font-family: 'Paytone One', sans-serif;
+  font-size: 2em;
   text-align: center;
 }
 
@@ -21,13 +21,13 @@ footer {
 }
 
 .btn.sharp {
-	border-radius: 0;
+  border-radius: 0;
 }
 
 .btn.half-span {
-	width: 49%;
+  width: 49%;
 }
 
 .accordion-toggle {
-	outline: none;
+  outline: none;
 }

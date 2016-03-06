@@ -1,62 +1,62 @@
 <script type="text/ng-template" id="group-template.html">
-	<div class="panel {{panelClass || 'panel-default'}}">
-		<div class="panel-heading">
-			<h4 class="panel-title">
-				<span uib-accordion-transclude="headingPreToggle"><span uib-accordion-header>{{headingNoToggle}}</span></span>
-				<a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading"><span uib-accordion-header>{{heading}}</span></a>
-				<span uib-accordion-transclude="headingPostToggle"><span uib-accordion-header>{{headingNoToggle}}</span></span>
-			</h4>
-		</div>
-		<div class="panel-collapse collapse" uib-collapse="!isOpen">
-			<div class="panel-body" ng-transclude></div>
-		</div>
-	</div>
+  <div class="panel {{panelClass || 'panel-default'}}">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <span uib-accordion-transclude="headingPreToggle"><span uib-accordion-header>{{headingNoToggle}}</span></span>
+        <a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading"><span uib-accordion-header>{{heading}}</span></a>
+        <span uib-accordion-transclude="headingPostToggle"><span uib-accordion-header>{{headingNoToggle}}</span></span>
+      </h4>
+    </div>
+    <div class="panel-collapse collapse" uib-collapse="!isOpen">
+      <div class="panel-body" ng-transclude></div>
+    </div>
+  </div>
 </script>
 
 <div class="container">
-	<div class='col-sm-12'>
-		<a href="/logout" class="btn btn-ms btn-success pull-right">Sign Out</a>
-	</div>
+  <div class='col-sm-12'>
+    <a href="/logout" class="btn btn-ms btn-success pull-right">Sign Out</a>
+  </div>
 </div>
 
 <div class="title">
-		<h1>Taskie</h1>
+    <h1>Taskie</h1>
 </div>
 
 <div class="container">
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<b>Tasks</b>
-			<a target="_blank" class="btn btn-xs" data-type="plus" ng-click="showTaskModal()">
-				<span class="glyphicon glyphicon-plus"></span>
-			</a>
-		</div>
-		<div class="panel-body">
-			<uib-accordion close-others=false>
-				<uib-accordion-group template-url="group-template.html" ng-repeat="task in tasks | orderBy: taskGetDueDate" is-open="status.open">
-					<uib-accordion-heading-pre-toggle>
-						<a target="_blank" class="btn btn-xs" ng-click="updateTask(task.data.TaskID, undefined, undefined, undefined, ((task.data.Status == 1) ? 2 : 1))">
-							<span class="glyphicon" style="font-size: 16px" ng-class="{'glyphicon-check': task.data.Status == 2, 'glyphicon-unchecked': task.data.Status == 1}"></span>
-						</a>
-					</uib-accordion-heading-pre-toggle>
-					<uib-accordion-heading>
-						<span class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></span>
-						<b ng-class="{'strike-through': task.data.Status == 2}">{{task.data.Title}}</b>
-					</uib-accordion-heading>
-					<uib-accordion-heading-post-toggle>
-						<a target="_blank" class="btn btn-xs" ng-click="showTaskModal(task.data)">
-							<span class="glyphicon glyphicon-pencil"></span>
-						</a>
-						<div class="pull-right">
-							<b>{{task.data.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
-							<a style="margin-top: -4px;" target="_blank" class="btn btn-danger btn-xs" ng-click="delTask(task.data.TaskID)">
-								<span class="glyphicon glyphicon-minus"></span>
-							</a>
-						</div>
-					</uib-accordion-heading-post-toggle>
-					<span ng-class="{'strike-through': task.data.Status == 2}">{{task.data.Description}}</span>
-				</uib-accordion-group>
-			</uib-accordion>
-		</div>
-	</div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <b>Tasks</b>
+      <a target="_blank" class="btn btn-xs" data-type="plus" ng-click="showTaskModal()">
+        <span class="glyphicon glyphicon-plus"></span>
+      </a>
+    </div>
+    <div class="panel-body">
+      <uib-accordion close-others=false>
+        <uib-accordion-group template-url="group-template.html" ng-repeat="task in tasks | orderBy: taskGetDueDate" is-open="status.open">
+          <uib-accordion-heading-pre-toggle>
+            <a target="_blank" class="btn btn-xs" ng-click="updateTask(task.data.TaskID, undefined, undefined, undefined, ((task.data.Status == 1) ? 2 : 1))">
+              <span class="glyphicon" style="font-size: 16px" ng-class="{'glyphicon-check': task.data.Status == 2, 'glyphicon-unchecked': task.data.Status == 1}"></span>
+            </a>
+          </uib-accordion-heading-pre-toggle>
+          <uib-accordion-heading>
+            <span class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></span>
+            <b ng-class="{'strike-through': task.data.Status == 2}">{{task.data.Title}}</b>
+          </uib-accordion-heading>
+          <uib-accordion-heading-post-toggle>
+            <a target="_blank" class="btn btn-xs" ng-click="showTaskModal(task.data)">
+              <span class="glyphicon glyphicon-pencil"></span>
+            </a>
+            <div class="pull-right">
+              <b>{{task.data.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
+              <a style="margin-top: -4px;" target="_blank" class="btn btn-danger btn-xs" ng-click="delTask(task.data.TaskID)">
+                <span class="glyphicon glyphicon-minus"></span>
+              </a>
+            </div>
+          </uib-accordion-heading-post-toggle>
+          <span ng-class="{'strike-through': task.data.Status == 2}">{{task.data.Description}}</span>
+        </uib-accordion-group>
+      </uib-accordion>
+    </div>
+  </div>
 </div>
