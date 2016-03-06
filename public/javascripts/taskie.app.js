@@ -154,8 +154,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     var processMessages = function (messages) {
       var niceMessages = [];
       for (var i=0; i<messages.length; i++) {
-        console.log(result.messages[i]);
-        switch (result.messages[i]) {
+        console.log(messages[i]);
+        switch (messages[i]) {
           case 'auth-failure':
             $location.path("login");
             break;
@@ -193,16 +193,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         if (err) {
           //Handle JS errors here!
         };
-        // Check the messages and ensure that everything went alright
-        // redirect on a auth-failure
-        // TODO: Seperate this out to a seperate function that processes
-        //       all messages and performs the correct action based on that.
-        for (var i=0; i<result.messages.length; i++) {
-          console.log(result.messages[i]);
-          if (result.messages[i] == 'auth-failure') {
-            $location.path("login");
-          }
-        }
+
+        // Handle the messages that were passed to us from this action
+        processMessages(result.messages);
 
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
@@ -230,16 +223,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         if (err) {
           //Handle JS errors here!
         };
-        // Check the messages and ensure that everything went alright
-        // redirect on a auth-failure
-        // TODO: Seperate this out to a seperate function that processes
-        //       all messages and performs the correct action based on that.
-        for (var i=0; i<result.messages.length; i++) {
-          console.log(result.messages[i]);
-          if (result.messages[i] == 'auth-failure') {
-            $location.path("login");
-          }
-        }
+
+        // Handle the messages that were passed to us from this action
+        processMessages(result.messages);
 
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
@@ -263,16 +249,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         if (err) {
           //Handle JS errors here!
         };
-        // Check the messages and ensure that everything went alright
-        // redirect on a auth-failure
-        // TODO: Seperate this out to a seperate function that processes
-        //       all messages and performs the correct action based on that.
-        for (var i=0; i<result.messages.length; i++) {
-          console.log(result.messages[i]);
-          if (result.messages[i] == 'auth-failure') {
-            $location.path("login");
-          }
-        }
+
+        // Handle the messages that were passed to us from this action
+        processMessages(result.messages);
 
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
@@ -294,16 +273,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         if (err) {
           //Handle JS errors here!
         };
-        // Check the messages and ensure that everything went alright
-        // redirect on a auth-failure
-        // TODO: Seperate this out to a seperate function that processes
-        //       all messages and performs the correct action based on that.
-        for (var i=0; i<result.messages.length; i++) {
-          console.log(result.messages[i]);
-          if (result.messages[i] == 'auth-failure') {
-            $location.path("login");
-          }
-        }
+
+        // Handle the messages that were passed to us from this action
+        processMessages(result.messages);
 
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
@@ -418,6 +390,18 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       $scope.task.DateDue = moment.utc($('#datetimepicker').data("DateTimePicker").date()).toISOString();
       // Return what's changed
       $uibModalInstance.close($scope.task);
+    };
+
+    $scope.cancel = function () {
+      $uibModalInstance.dismiss('cancel');
+    };
+  })
+  .controller('ModalMessagesController', function ($scope, $uibModalInstance, messages) {
+    
+    $scope.messages = messages;
+
+    $scope.ok = function () {
+      $uibModalInstance.close();
     };
 
     $scope.cancel = function () {
