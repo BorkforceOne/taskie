@@ -211,7 +211,7 @@ var genVerificationCode = function (callback) {
 };
 
 var sendEmailVerification = function (userinfo) {
-  var verificationUrl = 'https://app.taskie.xyz/verify?code=' + userinfo.verificationCode;
+  var verificationUrl = 'https://app.taskie.xyz/#/login?code=' + userinfo.verificationCode;
 	
   email.sendEmail({template: email.mailTemplates.activate,
                    mailTo: userinfo.email,

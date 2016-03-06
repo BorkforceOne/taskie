@@ -25,13 +25,15 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
   })
 
-  .controller('LoginController', ['$scope', '$http', '$location', function($scope, $http, $location) {
+  .controller('LoginController', ['$scope', '$http', '$location', '$routeParams', '$uibModal', function($scope, $http, $location, $routeParams, $uibModal) {
     $scope.userinfo = {};
 
     $scope.userinfo.username = "";
     $scope.userinfo.password = "";
 
     $scope.response = {};
+
+    $scope.url = $routeParams.url;
 
     $scope.login = function() {
           $scope.code = null;
@@ -61,13 +63,89 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
               $scope.status = response.status;
           });
         };
+    var api = {};
+
+    api.verifyUser = function (data, cb) {
+      var req = {
+        method: 'POST',
+        url: '/api/v1/users/verify',
+        data: JSON.stringify({
+          verificationCode: data.verificationCode,
+        }),
+        headers: {'Content-Type': 'application/json'}
+      }
+      
+      return $http(req).
+        then(function(resp) {
+          return cb(null, resp.data);
+        }, function(resp) {
+          return cb(resp.status, resp.data);
+      });
+    };
+
+    var processMessages = function (messages) {
+      var niceMessages = [];
+      for (var i=0; i<messages.length; i++) {
+        console.log(messages[i]);
+        switch (messages[i]) {
+          case 'auth-failure':
+            $location.path("login");
+            break;
+
+          default:
+            niceMessages.push(messages[i]);
+            break;
+        }
+      }
+      
+      if (niceMessages.length > 0) {
+        showMessagesModal(niceMessages);
+      }
+    };
+
+    var showMessagesModal = function (messages) {
+      var modalInstance = $uibModal.open({
+        templateUrl: '/html/views/modals/messages.html',
+        controller: 'ModalMessagesController',
+        size: 'lg',
+        resolve: {
+          messages: function () {
+            return messages;
+          }
+        }
+      });
+    };
+
+    var verifyUser = function (code) {
+      var data = {
+        verificationCode: code,
+      };
+      
+      api.verifyUser(data, function (err, result) {
+        if (err) {
+          //Handle JS errors here!
+        };
+
+        // Handle the messages that were passed to us from this action
+        processMessages(result.messages);
+
+        // See if we actually got what we were expecting, despite possible
+        // messages from the server.
+        if (result.success) {
+          showMessagesModal(['Success! You may now login!']);
+        }
+      });
+    };
+
+    if ($routeParams.code != undefined) {
+      verifyUser($routeParams.code);
+    }
   }])
   .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', function($scope, $http, $location, $uibModal) {
     
     /* Define $scope variables that will be used here */
 
     $scope.tasks = [];
-    $scope.addtask = {};
 
     /* Define functions that will be used in this view here */
 
