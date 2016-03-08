@@ -4,23 +4,15 @@
 <div class="modal-body">
   <div class='row'>
     <div class='col-sm-3'>
-      <b>Title</b>
-    </div>
-    <div class='col-sm-6'>
-      <b>Description</b>
-    </div>
-    <div class='col-sm-3'>
-      <b>Due Date/Time</b>
-    </div>
-  </div>
-  <div class='row'>
-    <div class='col-sm-3'>
+      <b>Title</b><br>
       <input type='text' ng-model="task.Title" placeholder="Title" class="form-control"/>
     </div>
     <div class='col-sm-6'>
+      <b>Description</b><br>
       <textarea rows="2" ng-model="task.Description" placeholder="Description" class="form-control"/>
     </div>
     <div class='col-sm-3'>
+      <b>Due Date/Time</b><br>
       <input type='text' ng-init="initDatetime()" placeholder="Due Datetime" class="form-control" id='datetimepicker'/>
     </div>
   </div>

@@ -385,7 +385,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     };
   })
   .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', 'taskieAPI', function($scope, $http, $location, $uibModal, taskieAPI) {
-    
     /* Define $scope variables that will be used here */
 
     $scope.tasks = [];
@@ -528,6 +527,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     $scope.taskGetModifiedDate = function(task) {
       return moment(task.DateUpdated);
+    }
+
+    $scope.dateCompareNow = function(date) {
+      return moment().diff(date, 'minutes');
     }
 
     getTasks();

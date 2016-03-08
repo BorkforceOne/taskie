@@ -26,16 +26,16 @@
 <div class="container">
   <div class="panel panel-default">
     <div class="panel-heading">
-      <b>Tasks In-Progress</b>
-      <a class="btn btn-xs" data-type="plus" ng-click="showTaskModal()">
+      <a class="btn btn-xs" data-type="plus" uib-tooltip="Add a new task" ng-click="showTaskModal()">
         <span class="glyphicon glyphicon-plus"></span>
       </a>
+      <b>Tasks In-Progress</b>
     </div>
     <div class="panel-body">
       <uib-accordion close-others=false>
-        <uib-accordion-group template-url="task-template.html" ng-repeat="task in tasksInProgress | orderBy: taskGetDueDate" is-open="status.open" panel-class="((task.Status == Constants.STATUS_INPROGRESS) ? 'panel-info' : 'panel-default')">
+        <uib-accordion-group template-url="task-template.html" ng-repeat="task in tasksInProgress | orderBy: taskGetDueDate" is-open="status.open" panel-class="((dateCompareNow(task.DateDue) > 0) ? 'panel-danger' : ((dateCompareNow(task.DateDue) > -1440) ? 'panel-warning' : 'panel-info'))">
           <uib-accordion-heading-pre-toggle>
-            <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, ((task.Status == Constants.STATUS_INPROGRESS) ? 2 : 1))">
+            <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, Constants.STATUS_COMPLETED)" uib-tooltip="Mark this task as complete">
               <span class="glyphicon" ng-class="{'glyphicon-check': task.Status == Constants.STATUS_COMPLETED, 'glyphicon-unchecked': task.Status == Constants.STATUS_INPROGRESS}"></span>
             </a>
           </uib-accordion-heading-pre-toggle>
@@ -44,12 +44,12 @@
             <b ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Title}}</b>
           </uib-accordion-heading>
           <uib-accordion-heading-post-toggle>
-            <a class="btn btn-xs" ng-click="showTaskModal(task)">
+            <a class="btn btn-xs" ng-click="showTaskModal(task)" uib-tooltip="Edit this task">
               <span class="glyphicon glyphicon-pencil"></span>
             </a>
             <div class="pull-right">
-              <b>{{task.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
-              <a class="btn btn-xs" ng-click="delTask(task.TaskID)">
+              <b>{{task.DateDue | date:'EEEE, MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
+              <a class="btn btn-xs" ng-click="delTask(task.TaskID)" uib-tooltip="Delete this task">
                 <span class="glyphicon glyphicon-remove"></span>
               </a>
             </div>
@@ -67,7 +67,7 @@
       <uib-accordion close-others=false>
         <uib-accordion-group template-url="task-template.html" ng-repeat="task in tasksCompleted | orderBy: taskGetModifiedDate:true" is-open="status.open" panel-class="((task.Status == Constants.STATUS_INPROGRESS) ? 'panel-info' : 'panel-default')">
           <uib-accordion-heading-pre-toggle>
-            <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, ((task.Status == Constants.STATUS_INPROGRESS) ? 2 : 1))">
+            <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, Constants.STATUS_INPROGRESS)" uib-tooltip="Mark this task as incomplete">
               <span class="glyphicon" ng-class="{'glyphicon-check': task.Status == Constants.STATUS_COMPLETED, 'glyphicon-unchecked': task.Status == Constants.STATUS_INPROGRESS}"></span>
             </a>
           </uib-accordion-heading-pre-toggle>
@@ -77,8 +77,8 @@
           </uib-accordion-heading>
           <uib-accordion-heading-post-toggle>
             <div class="pull-right">
-              <b>{{task.DateDue | date:'MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
-              <a class="btn btn-xs" ng-click="delTask(task.TaskID)">
+              <b>{{task.DateDue | date:'EEEE, MMM d yyyy @ h:mm a'}}&nbsp&nbsp</b>
+              <a class="btn btn-xs" ng-click="delTask(task.TaskID)" uib-tooltip="Delete this task">
                 <span class="glyphicon glyphicon-remove"></span>
               </a>
             </div>
