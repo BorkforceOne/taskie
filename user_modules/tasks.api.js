@@ -11,6 +11,10 @@ console.log("Loading tasks.api.js");
 
 var tasks = require('./tasks.js');
 
+/**
+ * Attempts to get a single task. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var getTask = function (req, res) {
 	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
@@ -26,6 +30,10 @@ var getTask = function (req, res) {
 	});
 };
 
+/**
+ * Attempts to delete a single task. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var deleteTask = function (req, res) {
 	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
@@ -41,11 +49,10 @@ var deleteTask = function (req, res) {
 	});
 };
 
-/*
-* createTask()
-*
-* 
-*/
+/**
+ * Attempts to create a single task. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var createTask = function (req, res) {
 	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
@@ -65,11 +72,10 @@ var createTask = function (req, res) {
 	});
 };
 
-/*
-* putTask()
-*
-* 
-*/
+/**
+ * Attempts to modify a single task. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var putTask = function (req, res) {
 	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
@@ -91,11 +97,10 @@ var putTask = function (req, res) {
 	});
 };
 
-/*
-* getTasks()
-*
-* 
-*/
+/**
+ * Attempts to get multiple tasks. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var getTasks = function (req, res) {
 	if (!req.session.user) {
 		return res.json(tasks.createResponse(false, ['auth-failure'], {}));

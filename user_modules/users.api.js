@@ -11,34 +11,31 @@ console.log("Loading users.api.js");
 
 var users = require('./users.js');
 
-/*
-* getUser()
-*
-* Attempts to log in a user
-*/
-
+/**
+ * Attempts to login a user and sets their session if
+ * everything checks out. Sends the result back to the
+ * client as a HTTP JSON object.
+ */
 var userLogin = function (req, res) {
 	var params = {
 		Username: req.body.username,
 		Password: req.body.password
 	};
 
-	users.userLogin(params, function (err, result, userID) {
+	return users.userLogin(params, function (err, result, userID) {
 		if (result.success) {
 			req.session.user = result.data;
 			req.session.user.UserID = userID;
 		}
 
-		res.json(result);
+		return res.json(result);
 	});
 };
 
-
-/*
-* createUser()
-*
-* 
-*/
+/**
+ * Attempts to create a user and sends the result back
+ * to the client as a HTTP JSON object.
+ */
 var userCreate = function (req, res) {
 	var params = {
 		username: req.body.username,
@@ -50,17 +47,21 @@ var userCreate = function (req, res) {
 		lastname: req.body.lastname
 	};
 
-	users.createUser(params, function (err, result) {
+	return users.createUser(params, function (err, result) {
 		return res.json(result);
 	});
 };
 
+/**
+ * Attempts to consume a verification code. Sends the
+ * result back to the client as a HTTP JSON object.
+ */
 var userVerify = function (req, res) {
 	var params = {
 		verificationCode: req.body.verificationCode,
 	};
 
-	users.consumeVerficationCode(params, function (err, result) {
+	return users.consumeVerficationCode(params, function (err, result) {
 		return res.json(result);
 	});
 };
