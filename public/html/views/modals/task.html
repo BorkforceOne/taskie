@@ -2,7 +2,7 @@
     <h3 class="modal-title">Add/Modify Task</h3>
 </div>
 <div class="modal-body">
-  <div class='row'>
+  <div class='row modal-row'>
     <div class='col-sm-3'>
       <b>Title</b><br>
       <input type='text' ng-model="task.Title" placeholder="Title" class="form-control"/>
@@ -16,8 +16,8 @@
       <input type='text' ng-init="initDatetime()" placeholder="Due Datetime" class="form-control" id='datetimepicker'/>
     </div>
   </div>
-  <div class='row'>
-    <div class='col-sm-2'>
+  <div class='row modal-row'>
+    <div class='col-sm-3'>
       <b>Tags</b><br>
       <div class="input-group">
         <input type='text' placeholder="Tag" ng-model="newTag" class="form-control"/>
@@ -28,13 +28,14 @@
         </span>
       </div>
     </div>
-    <div class'col-sm-10'>
-		<div class = "btn-toolbar">
-		  <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "removeTaskTag(tag)">
-			<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-			{{tag}}
-		  </a>
-		</div>
+    <div class'col-sm-9'>
+      <div class = "btn-toolbar">
+        <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "removeTaskTag(tag)">
+        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        {{tag}}
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 <div class="modal-footer">

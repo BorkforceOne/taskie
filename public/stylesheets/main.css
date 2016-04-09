@@ -9,10 +9,6 @@
   font-size: 15px;
 }
 
-.glyphicon.glyphicon-remove {
-	#6F00FF
-}
-
 .glyphicon.glyphicon-remove.glyphicon-task-remove{
 	color: #D70000;
 }
@@ -113,14 +109,14 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  font-size: 1em;
+  font-size: 12pt;
   padding-bottom: 40px;
   background-color: #eee;
 }
 
 .title {
   font-family: 'Paytone One', sans-serif;
-  font-size: 5em;
+  font-size: 36pt;
   text-align: center;
 }
 
@@ -139,4 +135,9 @@ footer {
 
 .accordion-toggle {
   outline: none;
+}
+
+.modal-row {
+  margin-top: 20px;
+  margin-bottom: 20px;
 }

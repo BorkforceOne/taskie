@@ -423,11 +423,11 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     $scope.userRegister = userRegister;
   }])
-  .controller('ModalTaskController', function ($scope, $uibModalInstance, task) {
+  .controller('ModalTaskController', function ($scope, $uibModalInstance, taskieAPI, task) {
     
     if (task == undefined)
       task = {};
-    $scope.task = task;
+    $scope.task = $.extend(true, {}, task);
     $scope.newTag = "";
 
     $scope.initDatetime = function () {
@@ -455,6 +455,12 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       if ($scope.task.Tags == undefined) {
         $scope.task.Tags = [];
       }
+	  for (var i = 0; i < $scope.task.Tags.length; i++){
+		  if ($scope.newTag == $scope.task.Tags[i]){
+			  taskieAPI.showMessagesModal('Woops', ["That tag is already assosciated with this task!"]);
+			  return;
+		  }  
+	  }
       $scope.task.Tags.push($scope.newTag);
       $scope.newTag = "";
     };
