@@ -1,1 +1,0 @@
-/home/bjg96/downloads/bootstrap/dist/ui-bootstrap-tpls-1.2.3-SNAPSHOT.js
