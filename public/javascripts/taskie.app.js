@@ -5,28 +5,37 @@ $.ajaxSetup({
   }
 });
 
+
 angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
+	// Defines views 
   .config(function($routeProvider) {
+	// Where to go based on the url input 
     $routeProvider
+		// Go to index 
       .when('/', {
         controller:'IndexController as indexController',
         templateUrl:'/html/views/index.html'
       })
+	  // Go to login page 
       .when('/login', {
         controller:'LoginController as loginController',
         templateUrl:'/html/views/login.html'
       })
+	  // Go to register 
       .when('/register', {
         controller:'RegisterController as registerController',
         templateUrl:'/html/views/register.html'
       })
+	  // Go to index 
       .otherwise({
         redirectTo:'/'
       });
   })
   .factory('taskieAPI', ['$http', '$location', '$uibModal', function($http, $location, $uibModal) {
     var api = {};
-
+    // cb - call back function 
+	
+	// Data usage: {verificationCode: code}
     api.verifyUser = function (data, cb) {
       var req = {
         method: 'POST',
@@ -45,8 +54,17 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           return cb(resp.status, resp.data);
       });
     };
-
+	
+	/*
+	* 	userLogin(data, cb)
+	* 	
+	*	Attempts to login a user based on login information. 
+	*	
+	* 	Takes user information sent by the login page 
+	*	and turns it into a JSON object to be POSTed.
+	*/
     api.userLogin = function(data, cb) {
+	  // Set up the "package/request" to be sent 
       var req = {
         method: 'POST',
         url: '/api/v1/users/login',
@@ -56,17 +74,31 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         }),
         headers: {'Content-Type': 'application/json'},
       }
-
+	  // Send the request 
       return $http(req).
         then(function(resp) {
+		  // If success, goes through messages and sets the 
+		  // up into a modal for the user to be able to read. 
           processMessages(resp.data.messages);
           return cb(null, resp.data);
-        }, function(resp) {
+        }, function(resp) { 
+		  // If failure, send error message 
           return cb(resp.status, resp.data);
       });
     };
 
+	/*
+	 * 	userRegister(data, callback function)
+	 *	
+	 *	Attempts to register a user based on 
+	 *	information passed in by the user. 
+	 *	
+	 *	Sets up POST request with the user data 
+	 * 	passed in from the registration page and 
+	 * 	sends it. 
+	 */
     api.userRegister = function(data, cb) {
+	  // Set up request for a register 
       var req = {
         method: 'POST',
         url: '/api/v1/users/create',
@@ -81,12 +113,14 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         }),
         headers: {'Content-Type': 'application/json'},
       }
-
+	  // Send the request 
       return $http(req).
         then(function(resp) {
+		  // On success, show user messages 
           processMessages(resp.data.messages);
           return cb(null, resp.data);
         }, function(resp) {
+		  // On failure send error message 
           return cb(resp.status, resp.data);
       });
     };
@@ -114,6 +148,15 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
     
+	/*
+	 *	addTask(data, cb)
+	 *	
+	 *	Attempts to add a user created task to
+	 *	the users task list. 
+	 *	
+	 *	Builds a POST request for adding the new 
+	 *  task information input by the user. 
+	 */
     api.addTask = function (data, cb) {
       var req = {
         method: 'POST',
@@ -135,6 +178,16 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+	/*
+	 * updateTask(data, cb)
+	 * 
+	 * Attempts to update the task information after a task 
+	 * has been edited by the user. 
+	 * 
+	 * Builds the POST request with the edited data
+	 * of a task, input by the user. 
+	 * 
+	 */
     api.updateTask = function (data, cb) {
       var req = {
         method: 'PUT',
@@ -143,7 +196,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           desc: data.description,
           title: data.title,
           date_due: data.datetime_due,
-          status: data.status
+          status: data.status,
+		  tags: data.tags, 
         }),
         headers: {'Content-Type': 'application/json'}
       }
@@ -157,6 +211,15 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+	/*
+	 * delTask(data, cb)
+	 * 
+	 * Attempts send a DELETE request 
+	 * to remove a task from a users task list 
+	 * 
+	 * Builds the DELETE request with the information
+	 * regarding the ID of the task to be deleted. 
+	 */
     api.delTask = function (data, cb) {
       var req = {
         method: 'DELETE',
@@ -172,12 +235,21 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+	/*
+	 * processMessages(messages)
+	 * 
+	 * Takes in a set of returned messages and 
+	 * determines which messages to show to the user 
+	 * based on the error messages returned. 
+	 */
     var processMessages = function (messages) {
       var niceMessages = [];
       var title = "Messages From the Server";
 
       for (var i=0; i<messages.length; i++) {
         console.log(messages[i]);
+		// Check which error message was returned and display a
+		// user friendly equivalent with the UI. 
         switch (messages[i]) {
           case 'auth-failure':
             $location.path("login");
@@ -244,6 +316,12 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       }
     };
 
+	/*
+	 * showMessagesModal(title, messages)
+	 * 
+	 * Creates a modal/window for the user that displays 
+	 * a passed in message. 
+	 */
     var showMessagesModal = function (title, messages) {
       var modalInstance = $uibModal.open({
         templateUrl: '/html/views/modals/messages.html',
@@ -264,6 +342,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     return api;
   }])
 
+  
   .controller('LoginController', ['$scope', '$http', '$location', '$routeParams', 'taskieAPI', function($scope, $http, $location, $routeParams, taskieAPI) {
     $scope.userinfo = {};
 
@@ -349,6 +428,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     if (task == undefined)
       task = {};
     $scope.task = task;
+    $scope.newTag = "";
 
     $scope.initDatetime = function () {
       $('#datetimepicker').datetimepicker();
@@ -369,6 +449,25 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     $scope.cancel = function () {
       $uibModalInstance.dismiss('cancel');
+    };
+
+    $scope.addTaskTag = function () {
+      if ($scope.task.Tags == undefined) {
+        $scope.task.Tags = [];
+      }
+      $scope.task.Tags.push($scope.newTag);
+      $scope.newTag = "";
+    };
+    
+    $scope.removeTaskTag = function (tag) {
+		var new_tags = [];
+		for (var i = 0; i < $scope.task.Tags.length; i++){
+			if ($scope.task.Tags[i] == tag)	{
+				continue;
+			}
+			new_tags.push($scope.task.Tags[i]);
+		}
+		$scope.task.Tags = new_tags;
     };
   })
   .controller('ModalMessagesController', function ($scope, $uibModalInstance, messages, title) {
@@ -461,13 +560,14 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    var updateTask = function (task_id, title, description, datetime_due, status) {
+    var updateTask = function (task_id, title, description, datetime_due, status, tags) {
       var data = {
         task_id: task_id,
         title: title,
         description: description,
         datetime_due: datetime_due,
-        status: status
+        status: status,
+		tags: tags,
       };
 
       taskieAPI.updateTask(data, function (err, result) {
@@ -514,7 +614,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           addTask(task.Title, task.Description, task.DateDue);
         }
         else {
-          updateTask(task.TaskID, task.Title, task.Description, task.DateDue);
+          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags);
         }
       }, function () {
         //console.log('Modal dismissed at: ' + new Date());

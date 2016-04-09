@@ -33,7 +33,7 @@ var jsonifyTasks = function (entries) {
 * 
 */
 var getTask = function (params, cb) {
-  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated` FROM Tasks WHERE TaskID = ? AND UserID = ?";
+  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated`,`Tags`,`Priority` FROM Tasks WHERE TaskID = ? AND UserID = ?";
   var inserts = [params.tid, params.uid];
   sql = mysql.format(sql, inserts);
 
@@ -42,6 +42,10 @@ var getTask = function (params, cb) {
 			console.error('ERROR [tasks.js]: %s', err);
 			return cb(err, createResponse(false, ['task-lookup-error'], {}));
     }
+    // Build the tags associated with these tasks
+    for (var i=0; i<rows.length; i++)
+      if (rows[i].Tags)
+        rows[i].Tags = JSON.parse(rows[i].Tags);
 		return cb(null, createResponse(true, [], jsonifyTasks(rows)));
   });
 };
@@ -132,6 +136,12 @@ var updateTask = function (params, cb) {
 		params.date_due = new Date(params.date_due);
 		sql_inserts.push(params.date_due);
 	}
+  if (params.tags != undefined) {
+		sql_updates.push("`Tags` = ?");
+		params.tags = JSON.stringify(params.tags);
+    console.log(params.tags);
+		sql_inserts.push(params.tags);
+  };
 
 	var sql = "UPDATE `Tasks` SET ";
 	sql += sql_updates.join(', ');
@@ -141,6 +151,8 @@ var updateTask = function (params, cb) {
 	sql_inserts.push(params.uid);
 
   sql = mysql.format(sql, sql_inserts);
+
+  console.log(sql);
 
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {
@@ -171,7 +183,7 @@ var updateTask = function (params, cb) {
 * 
 */
 var getTasks = function (params, cb) {
-  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated` FROM Tasks WHERE UserID = ?";
+  var sql = "SELECT `TaskID`,`Title`,`Description`,`Status`,`ParentTaskID`,`DateDue`,`DateAdded`,`DateUpdated`,`Tags`,`Priority` FROM Tasks WHERE UserID = ?";
   var inserts = [params.uid];
   sql = mysql.format(sql, inserts);
 
@@ -180,6 +192,12 @@ var getTasks = function (params, cb) {
 			console.error('ERROR [tasks.js]: %s', err);
 			return cb(err, createResponse(false, ['task-lookup-error'], {}));
     }
+    // Build the tags associated with these tasks
+    for (var i=0; i<rows.length; i++)
+      if (rows[i].Tags)
+        rows[i].Tags = JSON.parse(rows[i].Tags);
+      else
+        rows[i].Tags = [];
 		return cb(null, createResponse(true, [], jsonifyTasks(rows)));
   });
 };

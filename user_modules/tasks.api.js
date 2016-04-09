@@ -89,7 +89,7 @@ var putTask = function (req, res) {
 		date_due: req.body.date_due,
 		parent_id: req.body.parent_id,
 		status: req.body.status,
-		tag: req.body.tag,
+		tags: req.body.tags,
 	};
 
 	tasks.updateTask(params, function (err, result) {

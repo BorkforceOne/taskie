@@ -4,14 +4,13 @@
 body {
   font-family: 'Roboto', sans-serif;
   font-size: 1em;
-  padding-top: 40px;
   padding-bottom: 40px;
   background-color: #eee;
 }
 
 .title {
   font-family: 'Paytone One', sans-serif;
-  font-size: 2em;
+  font-size: 5em;
   text-align: center;
 }
 
