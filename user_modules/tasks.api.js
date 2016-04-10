@@ -64,7 +64,8 @@ var createTask = function (req, res) {
 		task_desc: req.body.desc,
 		task_parent_id: req.body.parent_id,
 		task_date_due: req.body.date_due,
-		task_tag: req.body.tag
+		task_tags: req.body.tags,
+    task_priority: req.body.priority,
 	};
 
 	tasks.createTask(params, function (err, result) {
@@ -90,6 +91,7 @@ var putTask = function (req, res) {
 		parent_id: req.body.parent_id,
 		status: req.body.status,
 		tags: req.body.tags,
+    priority: req.body.priority
 	};
 
 	tasks.updateTask(params, function (err, result) {

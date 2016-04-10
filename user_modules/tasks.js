@@ -78,11 +78,13 @@ var deleteTask = function (params, cb) {
 * 
 */
 var createTask = function (params, cb) {
-  var sql = "INSERT INTO `Tasks` (`UserID`, `Title`, `Description`, `ParentTaskID`, `DateDue`) VALUES (?, ?, ?, ?, ?);";
+  var sql = "INSERT INTO `Tasks` (`UserID`, `Title`, `Description`, `ParentTaskID`, `DateDue`, `Tags`, `Priority`) VALUES (?, ?, ?, ?, ?, ?, ?);";
 
 	params.task_date_due = new Date(params.task_date_due);
 
-  var inserts = [params.uid, params.task_title, params.task_desc, params.task_parent_id, params.task_date_due];
+  if (params.task_tags)
+    params.task_tags = JSON.stringify(params.task_tags);
+  var inserts = [params.uid, params.task_title, params.task_desc, params.task_parent_id, params.task_date_due, params.task_tags, params.task_priority];
   sql = mysql.format(sql, inserts);
 
   database.connectionPool.query(sql, function(err, rows, fields) {
@@ -139,9 +141,12 @@ var updateTask = function (params, cb) {
   if (params.tags != undefined) {
 		sql_updates.push("`Tags` = ?");
 		params.tags = JSON.stringify(params.tags);
-    console.log(params.tags);
 		sql_inserts.push(params.tags);
-  };
+  }
+  if (params.priority != undefined) {
+    sql_updates.push("`Priority` = ?");
+    sql_inserts.push(params.priority);
+  }
 
 	var sql = "UPDATE `Tasks` SET ";
 	sql += sql_updates.join(', ');
@@ -151,8 +156,6 @@ var updateTask = function (params, cb) {
 	sql_inserts.push(params.uid);
 
   sql = mysql.format(sql, sql_inserts);
-
-  console.log(sql);
 
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {

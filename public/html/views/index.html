@@ -3,14 +3,12 @@
     <div class="panel-heading">
       <h4 class="panel-title">
 		<div class='row'>
-			<div class='col-sm-6'>
+			<div class='col-sm-7'>
 				<span uib-accordion-transclude="headingCol1"><span uib-accordion-header>{{headingCol1}}</span></span>
 				<a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading"><span uib-accordion-header>{{heading}}</span></a>
+				<span uib-accordion-transclude="headingPostToggle"><span uib-accordion-header>{{headingPostToggle}}</span></span>
 			</div>
-			<div class='col-sm-2'>
-				<span uib-accordion-transclude="headingCol2"><span uib-accordion-header>{{headingCol2}}</span></span>
-			</div>
-			<div class='col-sm-4'>
+			<div class='col-sm-5'>
 				<span uib-accordion-transclude="headingCol3"><span uib-accordion-header>{{headingCol3}}</span></span>
 			</div>
 		</div>
@@ -44,12 +42,8 @@
       <uib-accordion close-others=false>
         <uib-accordion-group template-url="task-template.html" ng-repeat="task in tasksInProgress | orderBy: taskGetDueDate" is-open="status.open" panel-class="((dateCompareNow(task.DateDue) > 0) ? 'panel-danger' : ((dateCompareNow(task.DateDue) > -1440) ? 'panel-warning' : 'panel-info'))">
           <uib-accordion-heading-col-1>
-			
             <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, Constants.STATUS_COMPLETED)" uib-tooltip="Mark this task as complete">
               <span class="glyphicon" ng-class="{'glyphicon-check': task.Status == Constants.STATUS_COMPLETED, 'glyphicon-unchecked': task.Status == Constants.STATUS_INPROGRESS}"></span>
-            </a>
-			<a class="btn btn-xs" ng-click="showTaskModal(task)" uib-tooltip="Edit this task">
-              <span class="glyphicon glyphicon-pencil"></span>
             </a>
           </uib-accordion-heading-col-1>
           <uib-accordion-heading>
@@ -58,12 +52,22 @@
               <b ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Title}}</b>
             </span>
           </uib-accordion-heading>
+          <uib-accordion-heading-post-toggle>
+            <a class="btn btn-xs" ng-click="showTaskModal(task)" uib-tooltip="Edit this task">
+              <span class="glyphicon glyphicon-pencil"></span>
+            </a>
+            <span class="badge">
+              <b ng-switch="task.Priority">
+                <b ng-switch-when="1">Medium</b>
+                <b ng-switch-when="2">High</b>
+                <b ng-switch-default>Low</b>
+              </b>
+            </span>
+            <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags">
+              {{tag}}
+            </a>
+          </uib-accordion-heading-post-toggle>
 		  <uib-accordion-heading-col-2>
-			<div class = "btn-toolbar">
-				<a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags">
-				  {{tag}}
-				</a>
-			</div>
 		  </uib-accordion-heading-col-2>
           <uib-accordion-heading-col-3>
             <div class="pull-right">
@@ -94,13 +98,25 @@
             <span class="glyphicon" ng-class="{'glyphicon-chevron-down': status.open, 'glyphicon-chevron-right': !status.open}"></span>
             <b ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Title}}</b>
           </uib-accordion-heading>
+          <uib-accordion-heading-post-toggle>
+            <span class="badge">
+              <b ng-switch="task.Priority">
+                <b ng-switch-when="1">Medium</b>
+                <b ng-switch-when="2">High</b>
+                <b ng-switch-default>Low</b>
+              </b>
+            </span>
+            <a class="btn btn-xs btn-tag btn-default" ng-repeat="tag in task.Tags">
+              {{tag}}
+            </a>
+          </uib-accordion-heading-post-toggle>
           <uib-accordion-heading-col-3>
-            <div class="pull-right">
+            <span class="pull-right">
               <b>{{task.DateDue | date:'EEEE, MMM d yyyy @ h:mm a'}}&nbsp&nbsp</b>
               <a class="btn btn-xs" ng-click="delTask(task.TaskID)" uib-tooltip="Delete this task">
                 <span class="glyphicon glyphicon-remove glyphicon-task-remove"></span>
               </a>
-            </div>
+            </span>
           </uib-accordion-heading-col-3>
           <span ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Description}}</span>
         </uib-accordion-group>

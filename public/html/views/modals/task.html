@@ -27,14 +27,20 @@
           </a>
         </span>
       </div>
-    </div>
-    <div class'col-sm-9'>
       <div class = "btn-toolbar">
         <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "removeTaskTag(tag)">
         <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
         {{tag}}
         </a>
       </div>
+    </div>
+    <div class='col-sm-6'>
+      <b>Priority</b><br>
+      <select class="form-control" ng-model="task.Priority" convert-to-number>
+          <option value="0">Low</option>
+          <option value="1">Medium</option>
+          <option value="2">High</option>
+      </select>
     </div>
   </div>
 </div>

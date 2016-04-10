@@ -165,6 +165,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           desc: data.description,
           title: data.title,
           date_due: data.datetime_due,
+          tags: data.tags,
+          priority: data.priority,
         }),
         headers: {'Content-Type': 'application/json'}
       }
@@ -198,6 +200,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           date_due: data.datetime_due,
           status: data.status,
 		  tags: data.tags, 
+		  priority: data.priority,
         }),
         headers: {'Content-Type': 'application/json'}
       }
@@ -425,8 +428,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
   }])
   .controller('ModalTaskController', function ($scope, $uibModalInstance, taskieAPI, task) {
     
-    if (task == undefined)
+    if (task == undefined) {
       task = {};
+      task.Priority = 0;
+    }
     $scope.task = $.extend(true, {}, task);
     $scope.newTag = "";
 
@@ -475,6 +480,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 		}
 		$scope.task.Tags = new_tags;
     };
+	
   })
   .controller('ModalMessagesController', function ($scope, $uibModalInstance, messages, title) {
     
@@ -549,11 +555,13 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    var addTask = function (title, description, datetime_due) {
+    var addTask = function (title, description, datetime_due, tags, priority) {
       var data = {
         title: title,
         description: description,
         datetime_due: datetime_due,
+        tags: tags,
+        priority: priority
       };
 
       taskieAPI.addTask(data, function (err, result) {
@@ -566,7 +574,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    var updateTask = function (task_id, title, description, datetime_due, status, tags) {
+    var updateTask = function (task_id, title, description, datetime_due, status, tags, priority) {
       var data = {
         task_id: task_id,
         title: title,
@@ -574,6 +582,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         datetime_due: datetime_due,
         status: status,
 		tags: tags,
+		priority: priority,
       };
 
       taskieAPI.updateTask(data, function (err, result) {
@@ -617,10 +626,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
       modalInstance.result.then(function (task) {
         if (task.TaskID == undefined) {
-          addTask(task.Title, task.Description, task.DateDue);
+          addTask(task.Title, task.Description, task.DateDue, task.Tags, task.Priority);
         }
         else {
-          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags);
+          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags, task.Priority);
         }
       }, function () {
         //console.log('Modal dismissed at: ' + new Date());
@@ -645,4 +654,17 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     $scope.updateTask = updateTask;
     $scope.getTasks = getTasks;
     $scope.delTask = delTask;
-  }]);
+  }])
+  .directive('convertToNumber', function() {
+    return {
+      require: 'ngModel',
+      link: function(scope, element, attrs, ngModel) {
+        ngModel.$parsers.push(function(val) {
+          return parseInt(val, 10);
+        });
+        ngModel.$formatters.push(function(val) {
+          return '' + val;
+        });
+      }
+    };
+  });
