@@ -13,10 +13,7 @@ var mysql = require('mysql');
 var email = require('./email');
 
 var jsonifyTask = function (entry) {
-	return {
-			type: 'task',
-			data: entry
-		}
+	return entry;
 }
 
 var jsonifyTasks = function (entries) {
@@ -210,7 +207,7 @@ var getTasks = function (params, cb) {
 *
 */
 var getNotifTasks = function (cb) {
-	var sql = "SELECT `TaskID`, `UserID`, `TaskTitle`, `TaskDesc`, `TaskDueDate`, `RecordStatus`, `username`, `firstname`, `lastname`, `email`, `TaskLastNotifDate` FROM `tasks` LEFT OUTER JOIN `users` ON `tasks`.`UserID` = `users`.`id` WHERE `RecordStatus` = 1 AND DATEDIFF(CURRENT_DATE, `TaskDueDate`) < 5 AND (DATEDIFF(CURRENT_DATE, `TaskLastNotifDate`) >= 1 OR `TaskLastNotifDate` IS NULL)";
+	var sql = "SELECT `TaskID`, `Tasks`.`UserID`, `Title`, `Description`, `DateDue`, `Tasks`.`Status`, `Username`, `Firstname`, `Lastname`, `Email`, `DateLastNotification` FROM `Tasks` LEFT OUTER JOIN `Users` ON `Tasks`.`UserID` = `Users`.`UserID` WHERE `Tasks`.`Status` = 1 AND (DATEDIFF(CURRENT_DATE, `DateLastNotification`) >= 1 OR `DateLastNotification` IS NULL) ORDER BY `Tasks`.`DateDue`  ASC";
 	
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {
@@ -222,37 +219,36 @@ var getNotifTasks = function (cb) {
 };
 
 /*
- *sendNotifTask
+ *sendNotifTasks
  *
 */
-var sendNotifTask = function (params, cb) {
-	var sql = "UPDATE `tasks` SET `TaskLastNotifDate` = CURRENT_TIMESTAMP WHERE `TaskID` = ?";
-	var sql_inserts = [params.task_id];
+var sendNotifTasks = function (params, cb) {
+  var user = params.User;
+	var sql_template = "UPDATE `Tasks` SET `DateLastNotification` = CURRENT_TIMESTAMP WHERE `TaskID` = ?";
 
-  sql = mysql.format(sql, sql_inserts);
-
-	database.connectionPool.query(sql, function(err, rows, fields) {
-    if (err) {
-      console.error('ERROR [tasks.js]: %s', err);
-    }
+  user.Tasks.forEach(function (task) {
+    var sql_inserts = [task.TaskID];
+    var sql = mysql.format(sql_template, sql_inserts);
+    
+    database.connectionPool.query(sql, function(err, rows, fields) {
+      if (err) {
+        console.error('ERROR [tasks.js]: %s', err);
+      }
+    });
   });
 
-	/*
+
 	email.sendEmail({
 		template: email.mailTemplates.task_notification,
-		mailTo: params.email,
-		subject: 'Taskie - Upcoming Task',
+		mailTo: user.Email,
+		subject: 'Taskie - You Have Upcoming Tasks',
 		vars: {
-			name: params.firstname,
-			task_name: params.task_name,
-			task_desc: params.task_desc,
-			task_due_date: params.task_due_date,
-			application: 'Taskie',
+			firstname: user.Firstname,
+      tasks: user.Tasks
 			}
 		}, function (err, results) {
 		console.log(results.response);
 	});
-	*/
 };
 
 var createResponse = function (success, messages, data) {
@@ -267,5 +263,5 @@ module.exports = {
 	updateTask: updateTask,
 	createResponse: createResponse,
 	getNotifTasks: getNotifTasks,
-	sendNotifTask: sendNotifTask,
+	sendNotifTasks: sendNotifTasks,
 };

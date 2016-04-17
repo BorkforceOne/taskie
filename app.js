@@ -10,6 +10,7 @@ var knex = require('knex');
 var knexSessionStore = require('connect-session-knex')(session);
 var routes = require('./routes/index');
 var apiV1 = require('./routes/api.v1');
+var tasks = require('./user_modules/tasks.js');
 
 var knexSql = new knex({
 	client: 'mysql',
@@ -27,6 +28,8 @@ var store = new knexSessionStore({
 });
 
 var app = express();
+
+app.locals.application = "Taskie";
 
 app.use(session({
     secret: config.session.secret,
@@ -82,5 +85,41 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
+
+/* Set up the notification system */
+var notifyTasks = function () {
+  tasks.getNotifTasks(function (error, result) {
+      if (!result.success) {
+        console.log("[task_notif] An error occured: " + result.messages.join);
+        return;
+      }
+      var users = {};
+      // Aggregate by user
+      result.data.forEach(function (task) {
+        if (users[task.UserID]) {
+          users[task.UserID].Tasks.push(task);
+        }
+        else {
+          users[task.UserID] = {};
+          users[task.UserID].Firstname = task.Firstname;
+          users[task.UserID].Lastname = task.Lastname;
+          users[task.UserID].Email = task.Email;
+          users[task.UserID].Tasks = [task];
+        }
+      });
+      
+      // Send out emails for each user
+      Object.keys(users).forEach(function (userID) {
+        tasks.sendNotifTasks({User: users[userID]});
+      });
+    }
+  );
+}
+
+setInterval(function () {
+  notifyTasks();
+}, 600000);
+
+notifyTasks();
 
 module.exports = app;

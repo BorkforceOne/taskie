@@ -25,6 +25,9 @@ mailTemplates.activate = new EmailTemplate('./mail-templates/activate');
 mailTemplates.task_notification = new EmailTemplate('./mail-templates/task-notification');
 
 var sendEmail = function (o, cb) {
+  // Inject some variables into o.var
+  o.vars.application = "Taskie";
+  o.vars.moment = require('moment');
   o.template.render(o.vars, function (err, results) {
 		if (err) {
 			console.error('ERROR [email.js]: %s', err);

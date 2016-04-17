@@ -23,17 +23,15 @@ head
                         //- -----------------------------------------------------------------------------------
                         //- Only Edit Here
                         //- -----------------------------------------------------------------------------------
-                        p Hello #{name},
+                        p Hello #{firstname},
                         p
-                          | You have an upcoming task, see the details below:
-                        p
-                          | Task Name: #{task_name}
-                        p
-                          | Task Description: #{task_desc}
-                        p
-                          | Task Due Date/Time: #{task_due_date}
+                          | You have some upcoming tasks, see the details below:
+                        ul
+                          each task in tasks
+                            li #{task.Title} due on #{moment(task.DateDue).format('MMMM Do YYYY, [at] h:mm:ss a')}
                         br
                         p   - The #{application} team
+                        p   Note: All datetimes are in MST
                         //- ----------------------------------------------------------------------------------
                       td(width='36')
                     tr
