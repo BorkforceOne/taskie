@@ -495,41 +495,116 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       $uibModalInstance.dismiss('cancel');
     };
   })
+  .controller('ModalDeleteUserController', function ($scope, $uibModalInstance) {
+    $scope.ok = function () {
+      $uibModalInstance.close();
+    };
+
+    $scope.cancel = function () {
+      $uibModalInstance.dismiss('cancel');
+    };
+  })
   .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', 'taskieAPI', function($scope, $http, $location, $uibModal, taskieAPI) {
     /* Define $scope variables that will be used here */
 
     $scope.tasks = [];
+		$scope.sortedTasks = [];
     $scope.Constants = {};
+		$scope.filterTags = [];
+		$scope.sortBy = "DateDue";
 
     var Constants = {};
     Constants.STATUS_COMPLETED = 2;
     Constants.STATUS_INPROGRESS = 1;
     $scope.Constants = Constants;
 
-    $scope.tasksInProgress = [];
-    $scope.tasksCompleted = [];
-
-
     // Watch our raw tasks here and update the list as stuff changes
-    $scope.$watch(function() {return $scope.tasks}, function (tasks){
-      var tasksInProgress = [];
-      var tasksCompleted = [];
-      for (var i=0; i<tasks.length; i++) {
-        var taskData = tasks[i].data;
-        switch (taskData.Status) {
-          case Constants.STATUS_COMPLETED:
-            tasksCompleted.push(taskData);
-            break;
+    $scope.$watch('[tasks, sortBy, filterTags]', function (){
+      var tasksSorted = [];
 
-          case Constants.STATUS_INPOROGRESS:
-          default:
-            tasksInProgress.push(taskData);
+      // Step 1: Only add non-filtered tasks
+      for (var i=0; i<$scope.tasks.length; i++) {
+        var task = $scope.tasks[i];
+        var filtered = false;
+        for (var filterTagIndex=0; filterTagIndex<$scope.filterTags.length; filterTagIndex++) {
+          var found = false;
+          for (var taskTagIndex=0; taskTagIndex<task.Tags.length; taskTagIndex++) {
+            if ($scope.filterTags[filterTagIndex] == task.Tags[taskTagIndex]) {
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            filtered = true;
             break;
+          }
+        }
+
+        if (!filtered) {
+          tasksSorted.push(task);
         }
       }
 
-      $scope.tasksInProgress = tasksInProgress;
-      $scope.tasksCompleted = tasksCompleted;
+      // Step 2: Sort by whatever we're sorting by
+      switch ($scope.sortBy) {
+        case "DateDue":
+          tasksSorted.sort(function (a, b) {
+            return moment(a.DateDue) - moment(b.DateDue);
+          });
+        break;
+
+        case "Priority":
+          tasksSorted.sort(function (a, b) {
+            var result = b.Priority - a.Priority;
+            if (result == 0) {
+              return moment(a.DateDue) - moment(b.DateDue);
+            }
+            return result;
+          });
+        break;
+
+        case "Alphabetical":
+          tasksSorted.sort(function (a, b) {
+            return a.Title.localeCompare(b.Title);
+          });
+        break;
+      }
+
+      // Step 3, push all completed tasks to the end
+      var tasksCompleted = [];
+      var tasksInProgress = [];
+      for (var i in tasksSorted) {
+        if (tasksSorted[i].Status == Constants.STATUS_COMPLETED)
+          tasksCompleted.push(tasksSorted[i]);
+        if (tasksSorted[i].Status == Constants.STATUS_INPROGRESS)
+          tasksInProgress.push(tasksSorted[i]);
+      }
+
+      tasksSorted = tasksInProgress.concat(tasksCompleted);
+
+      // Step 4, add metadata!
+      for (var i in tasksSorted) {
+        var task = tasksSorted[i];
+        task.metadata = {};
+
+        var timeDiff = moment().diff(task.DateDue, 'minutes');        
+        if (timeDiff > 0)
+          task.metadata.panel_type = 'panel-danger';
+        else if (timeDiff > -1440)
+          task.metadata.panel_type = 'panel-warning';
+        else
+          task.metadata.panel_type = 'panel-info';
+
+        if (task.Status == Constants.STATUS_COMPLETED) {
+          task.metadata.panel_type = 'panel-default';
+          task.metadata.toggleTo = Constants.STATUS_INPROGRESS;
+        }
+        else {
+          task.metadata.toggleTo = Constants.STATUS_COMPLETED;
+        }
+      }
+
+      $scope.tasksSorted = tasksSorted;
     }, true);
 
     /* Define functions that will be used in this view here */
@@ -546,7 +621,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           // Set the tasks to the list we just got back!
           var new_tasks = [];
           for (var i=0; i<$scope.tasks.length; i++) {
-            if ($scope.tasks[i].data.TaskID == task_id)
+            if ($scope.tasks[i].TaskID == task_id)
               continue;
             new_tasks.push($scope.tasks[i]);
           }
@@ -591,9 +666,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         if (result.success) {
           // Set the tasks to the list we just got back!
           for (var i=0; i<$scope.tasks.length; i++) {
-            if ($scope.tasks[i].data.TaskID == task_id) {
-              var task = $scope.tasks[i];
-              task.data = result.data[0].data;
+            if ($scope.tasks[i].TaskID == task_id) {
+              $scope.tasks[i] = result.data[0];
               break;
             }
           }
@@ -647,6 +721,30 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     $scope.dateCompareNow = function(date) {
       return moment().diff(date, 'minutes');
     }
+		
+		$scope.setSortBy = function(sort_index){
+			$scope.sortBy = sort_index;
+		}
+		
+		$scope.addFilterTag = function(tag){
+			for (var i=0; i<$scope.filterTags.length; i++){
+				if ($scope.filterTags[i] == tag){
+					console.log('Can\'t add duplicate tags to sort by.');
+					return -1;
+				}
+			}
+			$scope.filterTags.push(tag);
+		}
+		
+		$scope.delFilterTag = function(tag){
+			var filter_tags = [];
+			for (var i=0; i<$scope.filterTags.length; i++) {
+				if ($scope.filterTags[i] == tag)
+					continue;
+				filter_tags.push($scope.filterTags[i]);
+			}
+			$scope.filterTags = filter_tags;
+		}
 
     getTasks();
 

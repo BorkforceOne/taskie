@@ -145,3 +145,26 @@ footer {
 .btn-tag{
   margin: 5px;
 }
+
+.navbar-default {
+  background-color: #6bb36b;
+  border-color: #5c995c;
+  background-image: none;
+}
+
+.navbar-default .navbar-brand {
+  color: #ecf0f1;
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+  color: #ecf0f1;
+}
+
+.navbar-default .navbar-text {
+  color: #ecf0f1;
+}
+
+.navbar-default .navbar-nav>li>a {
+  color: #ecf0f1;
+}
