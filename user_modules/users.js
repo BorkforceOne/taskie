@@ -15,10 +15,11 @@ var bcrypt = require('bcrypt');
 var async = require('async');
 var crypto = require('crypto');
 
-var scrubUser = function (user, cb) {
+var scrubUser = function (user) {
 	return { Username : user.Username,
 					 Firstname: user.Firstname,
-					 Lastname: user.Lastname
+					 Lastname: user.Lastname,
+					 NotificationInterval: user.NotificationInterval
 				 };
 };
 
@@ -36,7 +37,7 @@ var validUsername = function (userinfo, callback) {
 		messages.push('username-illegal-character-error');
 	}
 
-	getUser(userinfo.username, function (err, user) {
+	getUser({Username: userinfo.username}, function (err, user) {
 		if (user.success || user.messages.length > 0) {
 			messages.push('username-inuse-error');
 		}
@@ -58,7 +59,7 @@ var validEmail = function (userinfo, callback) {
 		messages.push('email-illegal-character-error');
 	}
 
-	getUserByEmail(userinfo.email, function (err, user) {
+	getUser({Email: userinfo.email}, function (err, user) {
 		if (user.success || user.messages.length > 0) {
 			messages.push('email-inuse-error');
 		}
@@ -104,10 +105,37 @@ var validUserinfo = function (userinfo, cb) {
 		});
 }
 
-var getUser = function (user, cb) {
-	var sql = "SELECT * FROM `Users` WHERE `Username` = ?";
-	var inserts = [user];
-	sql = mysql.format(sql, inserts); 
+var getUser = function (params, cb) {
+	var sql_updates = [];
+	var sql_inserts = [];
+	
+	if (params.UserID != undefined) {
+		sql_updates.push("`UserID` = ?");
+		sql_inserts.push(params.UserID);
+	}
+	if (params.Email != undefined) {
+		sql_updates.push("`Email` = ?");
+		sql_inserts.push(params.Email);
+	}
+	if (params.Username != undefined) {
+		sql_updates.push("`Username` = ?");
+		sql_inserts.push(params.Username);
+	}
+
+	if (sql_inserts.length < 1) {
+		console.error("ERROR [users.js]: getUser not called with any of these parameters: 'UserID, Email, Username'");
+		return cb(err, createResponse(false, ['user-lookup-error'], {}));
+	}
+
+	var sql_select = "*";
+
+	if (params.Scrubbed == true) {
+		sql_select = "`Firstname`, `Lastname`, `Username`, `NotificationInterval`";
+	}
+
+	var sql = "SELECT " + sql_select + " FROM `Users` WHERE " + sql_updates.join(' AND ') + ";";
+
+	sql = mysql.format(sql, sql_inserts);
 
 	database.connectionPool.query(sql, function(err, rows, fields) {
 		if (err) {
@@ -119,26 +147,6 @@ var getUser = function (user, cb) {
 		}
 		if (rows.length > 1) {
 			return cb(null, createResponse(false, ['multi-user-error'], {}));
-		}
-		return cb(null, createResponse(false, [], {}));
-	});
-};
-
-var getUserByEmail = function (email, cb) {
-	var sql = "SELECT * FROM `Users` WHERE `Email` = ?";
-	var inserts = [email];
-	sql = mysql.format(sql, inserts); 
-
-	database.connectionPool.query(sql, function(err, rows, fields) {
-		if (err) {
-			console.error('ERROR [users.js]: %s', err);
-			return cb(err, createResponse(false, ['user-email-lookup-error'], {}));
-		}
-		if (rows.length == 1) {
-			return cb(null, createResponse(true, [], rows[0]));
-		}
-		if (rows.length > 1) {
-			return cb(null, createResponse(false, ['multi-email-error'], {}));
 		}
 		return cb(null, createResponse(false, [], {}));
 	});
@@ -161,7 +169,7 @@ var validatePassword = function (password, passwordHash, salt, cb) {
 *
 */
 var userLogin = function (params, cb) {
-	getUser(params.Username, function (err, result) {
+	getUser({Username: params.Username}, function (err, result) {
 		if (result.success){
 			var user = result.data;
 			return validatePassword(params.Password, user.Password, user.Salt, function (err, result) {
@@ -314,6 +322,50 @@ var addUser = function (userinfo, cb) {
   });
 };
 
+/*
+* updateUser()
+*
+* 
+*/
+var updateUser = function (params, cb) {
+	var sql_updates = [];
+	var sql_inserts = [];
+	
+	if (params.NotificationInterval != undefined) {
+		sql_updates.push("`NotificationInterval` = ?");
+		sql_inserts.push(params.NotificationInterval);
+	}
+
+	var sql = "UPDATE `Users` SET ";
+	sql += sql_updates.join(', ');
+	sql += " WHERE `UserID`=?;"
+
+	sql_inserts.push(params.UserID);
+
+  sql = mysql.format(sql, sql_inserts);
+
+  database.connectionPool.query(sql, function(err, rows, fields) {
+    if (err) {
+			console.error('ERROR [users.js]: %s', err);
+			return cb(err, createResponse(false, ['user-update-error'], {}));
+    }
+		if (rows.affectedRows == 0) {
+			return cb(err, createResponse(false, ['user-update-error', 'user-nonexistent'], {}));
+		}
+
+		var params_new = {
+			UserID: params.UserID,
+			Scrubbed: params.Scrubbed
+		};
+
+		getUser(params_new, function (err, result) {
+			if (err){
+				return cb(err, createResponse(false, ['user-update-error'].concat(result.messages), {}));
+			}
+			return cb(null, createResponse(true, [], result.data));
+		});
+  });
+};
 
 var createResponse = function (success, messages, data) {
 	return {success: success, messages: messages, data: data};
@@ -322,5 +374,7 @@ var createResponse = function (success, messages, data) {
 module.exports = {
 	userLogin: userLogin,
 	createUser: createUser,
-	consumeVerficationCode: consumeVerficationCode
+	consumeVerficationCode: consumeVerficationCode,
+	getUser: getUser,
+	updateUser: updateUser
 };

@@ -110,7 +110,6 @@ var createTask = function (params, cb) {
 * 
 */
 var updateTask = function (params, cb) {
-	
 	var sql_updates = [];
 	var sql_inserts = [];
 	
@@ -207,8 +206,8 @@ var getTasks = function (params, cb) {
 *
 */
 var getNotifTasks = function (cb) {
-	var sql = "SELECT `TaskID`, `Tasks`.`UserID`, `Title`, `Description`, `DateDue`, `Tasks`.`Status`, `Username`, `Firstname`, `Lastname`, `Email`, `DateLastNotification` FROM `Tasks` LEFT OUTER JOIN `Users` ON `Tasks`.`UserID` = `Users`.`UserID` WHERE `Tasks`.`Status` = 1 AND (DATEDIFF(CURRENT_DATE, `DateLastNotification`) >= 1 OR `DateLastNotification` IS NULL) ORDER BY `Tasks`.`DateDue`  ASC";
-	
+	var sql = "SELECT `TaskID`, `Tasks`.`UserID`, `Title`, `Description`, `DateDue`, `Tasks`.`Status`, `Username`, `Firstname`, `Lastname`, `Email`, `DateLastNotification` FROM `Tasks` LEFT OUTER JOIN `Users` ON `Tasks`.`UserID` = `Users`.`UserID` WHERE `Tasks`.`Status` = 1 AND `NotificationInterval` != 0 AND (DATEDIFF(CURRENT_DATE, `DateLastNotification`) >= `NotificationInterval` OR `DateLastNotification` IS NULL) AND DATEDIFF(CURRENT_DATE, `DateDue`) <= 7;"
+
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {
 			console.error('ERROR [tasks.js]: %s', err);

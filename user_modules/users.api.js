@@ -66,8 +66,41 @@ var userVerify = function (req, res) {
 	});
 };
 
+var userGet = function (req, res) {
+	if (!req.session.user) {
+		return res.json(users.createResponse(false, ['auth-failure'], {}));
+	}
+
+	var params = {
+		UserID: req.session.user.UserID,
+		Scrubbed: true,
+	}
+
+	return users.getUser(params, function (err, result) {
+		return res.json(result);
+	});
+}
+
+var userUpdate = function (req, res) {
+	if (!req.session.user) {
+		return res.json(users.createResponse(false, ['auth-failure'], {}));
+	}
+
+	var params = {
+		UserID: req.session.user.UserID,
+		NotificationInterval: req.body.NotificationInterval,
+		Scrubbed: true,
+	}
+
+	return users.updateUser(params, function (err, result) {
+		return res.json(result);
+	});
+}
+
 module.exports = {
 	userCreate: userCreate,
 	userLogin: userLogin,
 	userVerify: userVerify,
+	userGet: userGet,
+	userUpdate: userUpdate
 };

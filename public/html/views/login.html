@@ -1,14 +1,31 @@
-<div class="title">
-  <h1>Taskie</h1>
-</div>
+<div class="login-container">
+	<div class="title">
+	  <h1>Taskie</h1>
+	</div>
 
-<div class="container">
-  <div class="form-signin">
-    <div class="login-group">
-      <input class="form-control" name="username" placeholder="Username" required="" ng-model="userinfo.username" type="text">
-      <input class="form-control" name="password" placeholder="Password" required="" ng-model="userinfo.password" type="password">
-      <a class="btn btn-lg half-span btn-success" ng-click="userLogin()">Sign In</a>
-      <a href="#/register" class="btn btn-lg half-span btn-success">Sign Up</a>
-    </div>
-  </div>
+	<div class="container">
+	  <div class="form-signin">
+	    <div class="login-group">
+	      <input class="form-control" name="username" placeholder="Username" required="" ng-model="userinfo.username" type="text">
+	      <input class="form-control" name="password" placeholder="Password" required="" ng-model="userinfo.password" type="password">
+	      <a id="SingIn" class="btn btn-lg half-span btn-success" ng-click="userLogin()">Sign In</a>
+	      <a href="#/register" class="btn btn-lg half-span btn-success">Sign Up</a>
+	    </div>
+	  </div>
+	</div>
 </div>
+<script>
+	$(document).ready(function() {
+    	$(".login-group").on("keypress", function(e){
+    		if(e.which == 13){
+    			$("#SingIn").click();
+    		}
+    	});
+    	$(window).resize(function(){
+
+		    $('.login-container').css('padding-top', ($(window).height())/3.5);
+
+		});
+		$(window).resize();
+	});
+</script>

@@ -168,3 +168,12 @@ footer {
 .navbar-default .navbar-nav>li>a {
   color: #ecf0f1;
 }
+
+.modal-body>ul{
+  list-style-type: none;
+}
+
+.usr-header {
+  line-height: 32px;
+  text-align: right;
+}

@@ -14,6 +14,11 @@ router.route('/tasks')
 	.post(taskAPI.createTask);
 
 /* Handle users */
+
+router.route('/user')
+	.get(userAPI.userGet)
+	.put(userAPI.userUpdate);
+
 router.route('/users/login')
 	.post(userAPI.userLogin);
 

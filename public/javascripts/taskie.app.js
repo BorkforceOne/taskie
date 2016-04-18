@@ -125,6 +125,34 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+  /*
+   *  userGet(data, callback function)
+   *  
+   *  Attempts to get basic user information about
+   *  the currently logged in user.
+   *  
+   *  Sets up GET request and sends it.
+   */
+    api.userGet = function(data, cb) {
+    // Set up request 
+      var req = {
+        method: 'GET',
+        url: '/api/v1/user',
+        headers: {'Content-Type': 'application/json'},
+      }
+    // Send the request 
+      return $http(req).
+        then(function(resp) {
+      // On success, show user messages 
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+      // On failure send error message 
+          return cb(resp.status, resp.data);
+      });
+    };
+
+
     /*
      * getTasks(cb)
      * 
@@ -167,6 +195,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           date_due: data.datetime_due,
           tags: data.tags,
           priority: data.priority,
+          parent_id: data.parent_id,
         }),
         headers: {'Content-Type': 'application/json'}
       }
@@ -199,8 +228,39 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           title: data.title,
           date_due: data.datetime_due,
           status: data.status,
-		  tags: data.tags, 
-		  priority: data.priority,
+    		  tags: data.tags, 
+    		  priority: data.priority,
+          parent_id: data.parent_id,
+        }),
+        headers: {'Content-Type': 'application/json'}
+      }
+      
+      return $http(req).
+        then(function(resp) {
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+          return cb(resp.status, resp.data);
+      });
+    };
+
+
+  /*
+   * updateUser(data, cb)
+   * 
+   * Attempts to update the user information after it
+   * has been edited by the user. 
+   * 
+   * Builds the PUT request with the edited data
+   * of a user, input by the user. 
+   * 
+   */
+    api.updateUser = function (data, cb) {
+      var req = {
+        method: 'PUT',
+        url: '/api/v1/user',
+        data: JSON.stringify({
+          NotificationInterval: data.NotificationInterval,
         }),
         headers: {'Content-Type': 'application/json'}
       }
@@ -426,11 +486,12 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     $scope.userRegister = userRegister;
   }])
-  .controller('ModalTaskController', function ($scope, $uibModalInstance, taskieAPI, task) {
+  .controller('ModalTaskController', function ($scope, $uibModalInstance, taskieAPI, task, parentID) {
     
     if (task == undefined) {
       task = {};
       task.Priority = 0;
+      task.ParentTaskID = parentID;
     }
     $scope.task = $.extend(true, {}, task);
     $scope.newTag = "";
@@ -495,8 +556,53 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       $uibModalInstance.dismiss('cancel');
     };
   })
-  .controller('ModalDeleteUserController', function ($scope, $uibModalInstance) {
+  .controller('ModalUserSettingsController', function ($scope, $uibModalInstance, $uibModal, taskieAPI) {
+    $scope.user = {};
+
+    var userGet = function () {
+      taskieAPI.userGet(null, function (err, result) {
+        if (result.success) {
+          $scope.user = result.data;
+          console.log($scope.user);
+        }
+      });
+    }
+    userGet();
+
+    $scope.deleteAccount = function () {
+      var modalInstance = $uibModal.open({
+        templateUrl: '/html/views/modals/question.html',
+        controller: 'ModalMessagesController',
+        size: 'md',
+        resolve: {
+          messages: function () {
+            return "Are you sure you want to delete your account? This cannot be undone!";
+          },
+          title: function () {
+            return "Delete Account";
+          }
+        }
+      });
+
+      modalInstance.result.then(function (task) {
+        console.log("Deleting account...");
+      }, function () {
+        console.log("Phew, that was close!");
+      });
+    }
+
+    var updateUser = function () {
+      var data = {NotificationInterval: $scope.user.NotificationInterval};
+      taskieAPI.updateUser(data, function (err, result) {
+        if (result.success) {
+          $scope.user = result.data;
+          console.log($scope.user);
+        }
+      });
+    }
+
     $scope.ok = function () {
+      updateUser();
       $uibModalInstance.close();
     };
 
@@ -512,6 +618,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     $scope.Constants = {};
 		$scope.filterTags = [];
 		$scope.sortBy = "DateDue";
+    $scope.metadata = {};
+    $scope.user = {};
 
     var Constants = {};
     Constants.STATUS_COMPLETED = 2;
@@ -521,10 +629,43 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     // Watch our raw tasks here and update the list as stuff changes
     $scope.$watch('[tasks, sortBy, filterTags]', function (){
       var tasksSorted = [];
+      var metadata = {};
+
+      var buildTree = function (data) {
+        var idToNodeMap = {}; //Keeps track of nodes using id as key, for fast lookup
+        var root = []; //Initially set our loop to null
+
+        //loop over data
+
+        for (var i in data) {
+          var datum = data[i];
+
+          idToNodeMap[datum.TaskID] = datum;
+          metadata[datum.TaskID] = {};
+          metadata[datum.TaskID].children = [];
+        }
+
+        for(var i in data) {
+            var datum = data[i];
+
+            //add an entry for this node to the map so that any future children can
+            //lookup the parent
+            if (datum.ParentTaskID != null) {
+              //Let's add the current node as a child of the parent node.
+              metadata[idToNodeMap[datum.ParentTaskID].TaskID].children.push(datum);
+            }
+            else {
+              root.push(datum);
+            }
+        }
+        return root;
+      }
+
+      var tmpTasks = buildTree($scope.tasks);
 
       // Step 1: Only add non-filtered tasks
-      for (var i=0; i<$scope.tasks.length; i++) {
-        var task = $scope.tasks[i];
+      for (var i=0; i<tmpTasks.length; i++) {
+        var task = tmpTasks[i];
         var filtered = false;
         for (var filterTagIndex=0; filterTagIndex<$scope.filterTags.length; filterTagIndex++) {
           var found = false;
@@ -583,31 +724,39 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       tasksSorted = tasksInProgress.concat(tasksCompleted);
 
       // Step 4, add metadata!
-      for (var i in tasksSorted) {
-        var task = tasksSorted[i];
-        task.metadata = {};
+      for (var i in $scope.tasks) {
+        var task = $scope.tasks[i];
 
         var timeDiff = moment().diff(task.DateDue, 'minutes');        
         if (timeDiff > 0)
-          task.metadata.panel_type = 'panel-danger';
+          metadata[task.TaskID].panel_type = 'panel-danger';
         else if (timeDiff > -1440)
-          task.metadata.panel_type = 'panel-warning';
+          metadata[task.TaskID].panel_type = 'panel-warning';
         else
-          task.metadata.panel_type = 'panel-info';
+          metadata[task.TaskID].panel_type = 'panel-info';
 
         if (task.Status == Constants.STATUS_COMPLETED) {
-          task.metadata.panel_type = 'panel-default';
-          task.metadata.toggleTo = Constants.STATUS_INPROGRESS;
+          metadata[task.TaskID].panel_type = 'panel-default';
+          metadata[task.TaskID].toggleTo = Constants.STATUS_INPROGRESS;
         }
         else {
-          task.metadata.toggleTo = Constants.STATUS_COMPLETED;
+          metadata[task.TaskID].toggleTo = Constants.STATUS_COMPLETED;
         }
       }
 
+      $scope.metadata = metadata;
       $scope.tasksSorted = tasksSorted;
     }, true);
 
     /* Define functions that will be used in this view here */
+
+    var userGet = function () {
+      taskieAPI.userGet(null, function (err, result) {
+        if (result.success) {
+          $scope.user = result.data;
+        }
+      });
+    }
 
     var delTask = function (task_id) {
       var data = {
@@ -630,13 +779,14 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    var addTask = function (title, description, datetime_due, tags, priority) {
+    var addTask = function (title, description, datetime_due, tags, priority, parent_id) {
       var data = {
         title: title,
         description: description,
         datetime_due: datetime_due,
         tags: tags,
-        priority: priority
+        priority: priority,
+        parent_id: parent_id,
       };
 
       taskieAPI.addTask(data, function (err, result) {
@@ -649,15 +799,16 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    var updateTask = function (task_id, title, description, datetime_due, status, tags, priority) {
+    var updateTask = function (task_id, title, description, datetime_due, status, tags, priority, parent_id) {
       var data = {
         task_id: task_id,
         title: title,
         description: description,
         datetime_due: datetime_due,
         status: status,
-		tags: tags,
-		priority: priority,
+    		tags: tags,
+    		priority: priority,
+        parent_id: parent_id,
       };
 
       taskieAPI.updateTask(data, function (err, result) {
@@ -686,7 +837,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    $scope.showTaskModal = function(task) {
+    $scope.showTaskModal = function(task, parentID) {
       var modalInstance = $uibModal.open({
         templateUrl: '/html/views/modals/task.html',
         controller: 'ModalTaskController',
@@ -694,16 +845,19 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         resolve: {
           task: function () {
             return task;
+          },
+          parentID: function() {
+            return parentID;
           }
         }
       });
 
       modalInstance.result.then(function (task) {
         if (task.TaskID == undefined) {
-          addTask(task.Title, task.Description, task.DateDue, task.Tags, task.Priority);
+          addTask(task.Title, task.Description, task.DateDue, task.Tags, task.Priority, task.ParentTaskID);
         }
         else {
-          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags, task.Priority);
+          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags, task.Priority, task.ParentTaskID);
         }
       }, function () {
         //console.log('Modal dismissed at: ' + new Date());
@@ -746,6 +900,29 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			$scope.filterTags = filter_tags;
 		}
 
+    $scope.showUserSettingsModal = function() {
+      var modalInstance = $uibModal.open({
+        templateUrl: '/html/views/modals/user-settings.html',
+        controller: 'ModalUserSettingsController',
+        size: 'md',
+        resolve: {
+          messages: function () {
+            return "Are you sure you want to delete your account? This CANNOT be undone!";
+          },
+          title: function () {
+            return "Delete Account";
+          }
+        }
+      });
+
+      modalInstance.result.then(function (task) {
+        console.log("Done with user settings...")
+      }, function () {
+        console.log("Phew, that was close!")
+      });
+    };
+
+    userGet();
     getTasks();
 
     $scope.addTask = addTask;
