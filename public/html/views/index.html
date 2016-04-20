@@ -32,8 +32,11 @@
       <uib-accordion-heading-col-3>
         <div class="pull-right">
           <b>{{task.DateDue | date:'EEEE, MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
+          <a class="btn btn-xs" ng-click="broadcastTask(task.TaskID)" uib-tooltip="Broadcast this task">
+            <span class="glyphicon glyphicon-export"></span>
+          </a>          
           <a class="btn btn-xs" ng-click="delTask(task.TaskID)" uib-tooltip="Delete this task">
-            <span class="glyphicon glyphicon-remove  glyphicon-task-remove"></span>
+            <span class="glyphicon glyphicon-remove glyphicon-task-remove"></span>
           </a>
         </div>
       </uib-accordion-heading-col-3>
@@ -75,18 +78,15 @@
     <div class="navbar-header">
       <a class="navbar-brand">Welcome {{user.Username}}</a>
     </div>
-
-    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-      <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
-          <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="" ng-click="showUserSettingsModal()">User Settings</a></li>
-            <li><a href="/logout">Sign Out</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div><!-- /.navbar-collapse -->
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-cog" aria-hidden="true"></span></a>
+        <ul class="dropdown-menu">
+          <li><a href="" ng-click="showUserSettingsModal()">User Settings</a></li>
+          <li><a href="/logout">Sign Out</a></li>
+        </ul>
+      </li>
+    </ul>
   </div><!-- /.container-fluid -->
 </nav>
 
@@ -133,3 +133,6 @@
     <div class="panel-body" ng-if="tasksSorted.length > 0" ng-repeat="taskTree in [tasksSorted]" ng-include="'task-template.html'"></div>
   </div>
 </div>
+
+
+<!--<img src="/images/DO_Proudly_Hosted_Badge_Blue.png" alt="Proudly Hosted By Digital Ocean"/>-->

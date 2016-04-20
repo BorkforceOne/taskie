@@ -274,6 +274,30 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+  /*
+   * deleteUser(data, cb)
+   * 
+   * Attempts to delete the user from Taskie
+   * 
+   * Builds and runs the DELETE request
+   * 
+   */
+    api.deleteUser = function (data, cb) {
+      var req = {
+        method: 'DELETE',
+        url: '/api/v1/user',
+        headers: {'Content-Type': 'application/json'}
+      }
+      
+      return $http(req).
+        then(function(resp) {
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+          return cb(resp.status, resp.data);
+      });
+    };
+
 	/*
 	 * delTask(data, cb)
 	 * 
@@ -450,6 +474,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     if ($routeParams.code != undefined) {
       verifyUser($routeParams.code);
+      $location.search('code', null)
     }
 
   }])
@@ -518,15 +543,20 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     };
 
     $scope.addTaskTag = function () {
+      if ($scope.newTag == "") {
+        taskieAPI.showMessagesModal('Woops', ["You can not add a blank tag"]);
+        return;
+      }
+
       if ($scope.task.Tags == undefined) {
         $scope.task.Tags = [];
       }
-	  for (var i = 0; i < $scope.task.Tags.length; i++){
-		  if ($scope.newTag == $scope.task.Tags[i]){
-			  taskieAPI.showMessagesModal('Woops', ["That tag is already assosciated with this task!"]);
-			  return;
-		  }  
-	  }
+  	  for (var i = 0; i < $scope.task.Tags.length; i++){
+  		  if ($scope.newTag == $scope.task.Tags[i]){
+  			  taskieAPI.showMessagesModal('Woops', ["That tag is already associated with this task!"]);
+  			  return;
+  		  }
+  	  }
       $scope.task.Tags.push($scope.newTag);
       $scope.newTag = "";
     };
@@ -556,7 +586,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       $uibModalInstance.dismiss('cancel');
     };
   })
-  .controller('ModalUserSettingsController', function ($scope, $uibModalInstance, $uibModal, taskieAPI) {
+  .controller('ModalUserSettingsController', function ($scope, $uibModalInstance, $uibModal, $location, taskieAPI) {
     $scope.user = {};
 
     var userGet = function () {
@@ -568,6 +598,24 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     }
     userGet();
+
+    var updateUser = function () {
+      var data = {NotificationInterval: $scope.user.NotificationInterval};
+      taskieAPI.updateUser(data, function (err, result) {
+        if (result.success) {
+          $scope.user = result.data;
+          console.log($scope.user);
+        }
+      });
+    }
+
+    var deleteUser = function () {
+      taskieAPI.deleteUser(null, function (err, result) {
+        if (result.success) {
+          $location.path("login");
+        }
+      });
+    }
 
     $scope.deleteAccount = function () {
       var modalInstance = $uibModal.open({
@@ -585,19 +633,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
 
       modalInstance.result.then(function (task) {
-        console.log("Deleting account...");
+        deleteUser();
       }, function () {
         console.log("Phew, that was close!");
-      });
-    }
-
-    var updateUser = function () {
-      var data = {NotificationInterval: $scope.user.NotificationInterval};
-      taskieAPI.updateUser(data, function (err, result) {
-        if (result.success) {
-          $scope.user = result.data;
-          console.log($scope.user);
-        }
       });
     }
 
@@ -905,20 +943,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         templateUrl: '/html/views/modals/user-settings.html',
         controller: 'ModalUserSettingsController',
         size: 'md',
-        resolve: {
-          messages: function () {
-            return "Are you sure you want to delete your account? This CANNOT be undone!";
-          },
-          title: function () {
-            return "Delete Account";
-          }
-        }
-      });
-
-      modalInstance.result.then(function (task) {
-        console.log("Done with user settings...")
-      }, function () {
-        console.log("Phew, that was close!")
       });
     };
 
