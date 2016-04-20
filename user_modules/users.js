@@ -221,6 +221,7 @@ var genVerificationCode = function (callback) {
 var sendEmailVerification = function (userinfo) {
   var verificationUrl = 'https://app.taskie.xyz/#/login?code=' + userinfo.verificationCode;
 	
+  console.log('INFO [tasks.js] Sending email to: %s', userinfo.email);
   email.sendEmail({template: email.mailTemplates.activate,
                    mailTo: userinfo.email,
                    subject: 'Taskie Account Activation',
@@ -367,6 +368,38 @@ var updateUser = function (params, cb) {
   });
 };
 
+/*
+* deleteUser()
+*
+* 
+*/
+var deleteUser = function (params, cb) {
+	var sql = "DELETE FROM `Users` WHERE `Users`.`UserID` = ?";
+	var sql_inserts = [params.UserID];
+  sql = mysql.format(sql, sql_inserts);
+
+  database.connectionPool.query(sql, function(err, rows, fields) {
+    if (err) {
+			console.error('ERROR [users.js]: %s', err);
+			return cb(err, createResponse(false, ['user-delete-error'], {}));
+    }
+		if (rows.affectedRows == 0) {
+			return cb(err, createResponse(false, ['user-delete-error', 'user-nonexistent'], {}));
+		}
+
+		sql = "DELETE FROM `Tasks` WHERE `Tasks`.`UserID` = ?";
+	  sql = mysql.format(sql, sql_inserts);
+
+	  database.connectionPool.query(sql, function(err, rows, fields) {
+	    if (err) {
+				console.error('ERROR [users.js]: %s', err);
+				return cb(err, createResponse(false, ['user-delete-error'], {}));
+	    }
+	    return cb(null, createResponse(true, [], []));
+    });
+  });
+};
+
 var createResponse = function (success, messages, data) {
 	return {success: success, messages: messages, data: data};
 }
@@ -376,5 +409,6 @@ module.exports = {
 	createUser: createUser,
 	consumeVerficationCode: consumeVerficationCode,
 	getUser: getUser,
-	updateUser: updateUser
+	updateUser: updateUser,
+	deleteUser: deleteUser,
 };

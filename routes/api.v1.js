@@ -17,7 +17,8 @@ router.route('/tasks')
 
 router.route('/user')
 	.get(userAPI.userGet)
-	.put(userAPI.userUpdate);
+	.put(userAPI.userUpdate)
+	.delete(userAPI.userDelete);
 
 router.route('/users/login')
 	.post(userAPI.userLogin);

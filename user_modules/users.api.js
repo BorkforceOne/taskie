@@ -97,10 +97,29 @@ var userUpdate = function (req, res) {
 	});
 }
 
+var userDelete = function (req, res) {
+	if (!req.session.user) {
+		return res.json(users.createResponse(false, ['auth-failure'], {}));
+	}
+
+	var params = {
+		UserID: req.session.user.UserID
+	}
+
+	return users.deleteUser(params, function (err, result) {
+		if (result.success) {
+			console.log("Destroying session!")
+			req.session.destroy();
+		}
+		return res.json(result);
+	});
+}
+
 module.exports = {
 	userCreate: userCreate,
 	userLogin: userLogin,
 	userVerify: userVerify,
 	userGet: userGet,
-	userUpdate: userUpdate
+	userUpdate: userUpdate,
+	userDelete: userDelete,
 };

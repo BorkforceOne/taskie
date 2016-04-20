@@ -236,7 +236,7 @@ var sendNotifTasks = function (params, cb) {
     });
   });
 
-
+  console.log('INFO [tasks.js] Sending email to: %s', user.Email);
 	email.sendEmail({
 		template: email.mailTemplates.task_notification,
 		mailTo: user.Email,
@@ -246,7 +246,9 @@ var sendNotifTasks = function (params, cb) {
       tasks: user.Tasks
 			}
 		}, function (err, results) {
-		console.log(results.response);
+			if (err)
+				console.error('ERROR [tasks.js]: %s', err);
+	    console.log('INFO [tasks.js] Email Response: %s', results.response);
 	});
 };
 
