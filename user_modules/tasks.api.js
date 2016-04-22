@@ -117,10 +117,41 @@ var getTasks = function (req, res) {
 	});
 };
 
+var broadcastTask = function (req, res) {
+	if (!req.session.user) {
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
+	}
+
+	var params = {
+		UserID: req.session.user.UserID,
+		TaskID: req.params.TaskID
+	};
+	
+	tasks.broadcastTask(params, function (err, result) {
+		return res.json(result);
+	});
+};
+
+var receiveTask = function (req, res) {
+	if (!req.session.user) {
+		return res.json(tasks.createResponse(false, ['auth-failure'], {}));
+	}
+
+	var params = {
+		Code: req.params.Code
+	};
+	
+	tasks.receiveTask(params, function (err, result) {
+		return res.json(result);
+	});
+};
+
 module.exports = {
 	getTask: getTask,
 	getTasks: getTasks,
 	createTask: createTask,
 	deleteTask: deleteTask,
 	putTask: putTask,
+	broadcastTask: broadcastTask,
+	receiveTask: receiveTask
 };

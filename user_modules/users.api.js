@@ -108,9 +108,30 @@ var userDelete = function (req, res) {
 
 	return users.deleteUser(params, function (err, result) {
 		if (result.success) {
-			console.log("Destroying session!")
 			req.session.destroy();
 		}
+		return res.json(result);
+	});
+}
+
+var userRecover = function (req, res) {
+	var params = {
+		Email: req.body.Email
+	}
+
+	return users.recoverUser(params, function (err, result) {
+		return res.json(result);
+	});
+}
+
+var userReset = function (req, res) {
+	var params = {
+	  RecoveryCode: req.body.RecoveryCode,
+	  Password: req.body.Password,
+	  PasswordConf: req.body.PasswordConf,
+	}
+
+	return users.resetUser(params, function (err, result) {
 		return res.json(result);
 	});
 }
@@ -122,4 +143,6 @@ module.exports = {
 	userGet: userGet,
 	userUpdate: userUpdate,
 	userDelete: userDelete,
+	userRecover: userRecover,
+	userReset: userReset,
 };

@@ -11,6 +11,7 @@ console.log("Loading tasks.js");
 var database = require('./database.js');
 var mysql = require('mysql');
 var email = require('./email');
+var crypto = require('crypto');
 
 var jsonifyTask = function (entry) {
 	return entry;
@@ -38,6 +39,9 @@ var getTask = function (params, cb) {
     if (err) {
 			console.error('ERROR [tasks.js]: %s', err);
 			return cb(err, createResponse(false, ['task-lookup-error'], {}));
+    }
+    if (rows.length == 0) {
+    	return cb(err, createResponse(false, ['task-nonexistent'], {}));
     }
     // Build the tags associated with these tasks
     for (var i=0; i<rows.length; i++)
@@ -252,6 +256,89 @@ var sendNotifTasks = function (params, cb) {
 	});
 };
 
+var genBroadcastID = function(cb) {
+  crypto.randomBytes(8, function(ex, buf) {
+    cb(buf.toString('hex'));
+  });
+}
+
+var broadcastTask = function(params, cb) {
+	getTask({tid: params.TaskID, uid: params.UserID}, function (err, result) {
+		// We have the information on the task we want to clone, lets generate a SHA-256 of this JSON string
+    if (err || !result.success) {
+			console.error('ERROR [tasks.js]: %s', err);
+			return cb(err, createResponse(false, ['task-broadcast-error'], {}));
+    }
+
+		var task = result.data[0];
+		// Delete the stuff we don't care about
+		delete task.TaskID;
+		delete task.Status;
+		delete task.ParentTaskID;
+		delete task.DateAdded;
+		delete task.DateUpdated;
+
+		var hash = crypto.createHash('sha256').update(JSON.stringify(task)).digest('base64');
+		var link = "https://app.taskie.xyz/#/?receive=";
+
+    // See if this task already exists in our broadcast table, if it does then just serve that
+	  var sql = "SELECT `Code` FROM `Broadcasts` WHERE Hash = ?";
+	  var sql_inserts = [hash]
+	  sql = mysql.format(sql, sql_inserts);
+
+	  database.connectionPool.query(sql, function(err, rows, fields) {
+	    if (err) {
+				console.error('ERROR [tasks.js]: %s', err);
+				return cb(err, createResponse(false, ['task-broadcast-error'], {}));
+	    }
+	    if (rows.length == 1) {
+	    	// This task has been broadcasted before, just reserve that!
+	    	link += rows[0].Code;
+	    	return cb(null, createResponse(true, [], {Link: link}));
+	    }
+	    // This hash didn't exist! Let's make it!
+	    
+	    // Generate some random bytes to use as the ID
+	    genBroadcastID(function (code) {
+			  sql = "INSERT INTO `Broadcasts` (`Hash`, `Code`, `Task`, `UserID`) VALUES (?, ?, ?, ?)";
+			  sql_inserts = [hash, code, JSON.stringify(task), params.UserID]
+			  sql = mysql.format(sql, sql_inserts);
+
+			  database.connectionPool.query(sql, function(err, rows, fields) {
+			    if (err) {
+						console.error('ERROR [tasks.js]: %s', err);
+						return cb(err, createResponse(false, ['task-broadcast-error'], {}));
+			    }
+
+			    link += code;
+			    return cb(null, createResponse(true, [], {Link: link}));
+			  });
+	    })
+	  });
+	});
+};
+
+var receiveTask = function(params, cb) {
+  var sql = "SELECT `Task` FROM `Broadcasts` WHERE Code = ?";
+  var sql_inserts = [params.Code]
+  sql = mysql.format(sql, sql_inserts);
+
+  database.connectionPool.query(sql, function(err, rows, fields) {
+    if (err) {
+			console.error('ERROR [tasks.js]: %s', err);
+			return cb(err, createResponse(false, ['task-broadcast-error'], {}));
+    }
+    if (rows.length == 0) {
+    	err = "No task with that code exists in the Broadcasts table."
+			console.error('ERROR [tasks.js]: %s', err);
+			return cb(err, createResponse(false, ['task-recieve-nonexistent'], {}));
+    }
+    var result = rows[0];
+    // This task exists! Lets send the info to the user
+  	return cb(null, createResponse(true, [], JSON.parse(result.Task)));
+  });
+}
+
 var createResponse = function (success, messages, data) {
 	return {success: success, messages: messages, data: data};
 }
@@ -265,4 +352,6 @@ module.exports = {
 	createResponse: createResponse,
 	getNotifTasks: getNotifTasks,
 	sendNotifTasks: sendNotifTasks,
+	broadcastTask: broadcastTask,
+	receiveTask: receiveTask,
 };

@@ -123,7 +123,8 @@ var getUser = function (params, cb) {
 	}
 
 	if (sql_inserts.length < 1) {
-		console.error("ERROR [users.js]: getUser not called with any of these parameters: 'UserID, Email, Username'");
+    var err = "getUser not called with any of these parameters: 'UserID, Email, Username'";
+		console.error("ERROR [users.js]: %s", err);
 		return cb(err, createResponse(false, ['user-lookup-error'], {}));
 	}
 
@@ -219,7 +220,7 @@ var genVerificationCode = function (callback) {
 };
 
 var sendEmailVerification = function (userinfo) {
-  var verificationUrl = 'https://app.taskie.xyz/#/login?code=' + userinfo.verificationCode;
+  var verificationUrl = 'https://app.taskie.xyz/#/login?type=activation&code=' + userinfo.verificationCode;
 	
   console.log('INFO [tasks.js] Sending email to: %s', userinfo.email);
   email.sendEmail({template: email.mailTemplates.activate,
@@ -233,7 +234,27 @@ var sendEmailVerification = function (userinfo) {
                   function (err, results) {
 										if (err)
 											console.error('ERROR [users.js]: %s', err);
-                    console.log('INFO [users.js] Email Response: %s', results.response);
+										else
+	                    console.log('INFO [users.js] Email Response: %s', results.response);
+                  });
+};
+
+var sendEmailRecover = function (userinfo) {
+  var recoveryUrl = 'https://app.taskie.xyz/#/login?type=recover&code=' + userinfo.recoveryCode;
+	
+  console.log('INFO [tasks.js] Sending email to: %s', userinfo.email);
+  email.sendEmail({template: email.mailTemplates.recover,
+                   mailTo: userinfo.email,
+                   subject: 'Taskie Account Recovery',
+                   vars: {name: userinfo.firstname,
+                          recoveryUrl: recoveryUrl,
+                          mailtoAddress: 'webmaster@taskie.xyz',
+                          mailtoName: 'Taskie Support'}},
+                  function (err, results) {
+										if (err)
+											console.error('ERROR [users.js]: %s', err);
+										else
+	                    console.log('INFO [users.js] Email Response: %s', results.response);
                   });
 };
 
@@ -318,7 +339,7 @@ var addUser = function (userinfo, cb) {
 			console.error('ERROR [users.js]: %s', err);
 			return cb(err, createResponse(false, ['user-creation-error'], {}));
     } else {
-			return cb(err, createResponse(true, [], {}));
+			return cb(null, createResponse(true, [], {}));
     }
   });
 };
@@ -351,7 +372,7 @@ var updateUser = function (params, cb) {
 			return cb(err, createResponse(false, ['user-update-error'], {}));
     }
 		if (rows.affectedRows == 0) {
-			return cb(err, createResponse(false, ['user-update-error', 'user-nonexistent'], {}));
+			return cb(null, createResponse(false, ['user-update-error', 'user-nonexistent'], {}));
 		}
 
 		var params_new = {
@@ -400,6 +421,86 @@ var deleteUser = function (params, cb) {
   });
 };
 
+/*
+* recoverUser()
+*
+* 
+*/
+var recoverUser = function (params, cb) {
+	getUser({Email: params.Email}, function (err, user) {
+		if (user.success) {
+			user = user.data;
+			// Generate a new code to use for resetting the password
+			genVerificationCode(function (err, code) {
+				if (err) {
+					console.error('ERROR [users.js]: %s', err);
+					return cb(err, createResponse(false, ['user-recover-error'], {}));
+				}
+				var sql = "UPDATE `Users` SET `Status` = 2, `VerificationCode` = ? WHERE `UserID` = ?";
+				var sql_inserts = [code, user.UserID];
+				sql = mysql.format(sql, sql_inserts);
+			  database.connectionPool.query(sql, function(err, rows, fields) {
+			    if (err) {
+						console.error('ERROR [users.js]: %s', err);
+						return cb(err, createResponse(false, ['user-recover-error'], {}));
+			    }
+			    var params_new = {email: user.Email, recoveryCode: code, firstname: user.Firstname};
+			    sendEmailRecover(params_new);
+			    return cb(null, createResponse(true, [], []));
+		    });
+			});
+		}
+		else {
+			return cb(null, createResponse(true, [], {}));
+		}
+	});
+};
+
+/*
+* resetUser()
+*
+* 
+*/
+var resetUser = function (params, cb) {
+	// Ensure new passwords are valid
+	validPassword({password: params.Password, password_conf: params.PasswordConf}, function(err, messages) {
+		if (messages.length != 0)
+			return cb(null, createResponse(messages.length == 0, messages, {}));
+		// Password is valid
+
+		bcrypt.genSalt(10, function (err, salt) {
+			if (err) {
+				console.error('ERROR [users.js]: %s', err);
+				return cb(err, createResponse(false, ['user-reset-error'], {}));
+			}
+			var salt = salt;
+			// Hash the user password
+			bcrypt.hash(params.Password, salt, function (err, hash) {
+				if (err) {
+					console.error('ERROR [users.js]: %s', err);
+					return cb(err, createResponse(false, ['user-reset-error'], {}));
+				}
+				var password = hash;
+
+				var sql = "UPDATE `Users` SET `Status` = 0, `VerificationCode` = '', `Password` = ?, `Salt` = ? WHERE `VerificationCode` = ?";
+				var sql_inserts = [password, salt, params.RecoveryCode];
+				sql = mysql.format(sql, sql_inserts);
+			  database.connectionPool.query(sql, function(err, rows, fields) {
+			    if (err) {
+						console.error('ERROR [users.js]: %s', err);
+						return cb(err, createResponse(false, ['user-reset-error'], {}));
+			    }
+					if (rows.affectedRows == 0) {
+						return cb(null, createResponse(false, ['user-reset-error'], {}));
+					}
+			    return cb(null, createResponse(true, [], []));
+		    });
+
+			})
+		})
+	});
+};
+
 var createResponse = function (success, messages, data) {
 	return {success: success, messages: messages, data: data};
 }
@@ -411,4 +512,7 @@ module.exports = {
 	getUser: getUser,
 	updateUser: updateUser,
 	deleteUser: deleteUser,
+	createResponse: createResponse,
+	recoverUser: recoverUser,
+	resetUser: resetUser,
 };

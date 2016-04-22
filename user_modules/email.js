@@ -22,6 +22,7 @@ var mailTemplates = {};
 
 mailTemplates.welcome = new EmailTemplate('./mail-templates/welcome');
 mailTemplates.activate = new EmailTemplate('./mail-templates/activate');
+mailTemplates.recover = new EmailTemplate('./mail-templates/recover');
 mailTemplates.task_notification = new EmailTemplate('./mail-templates/task-notification');
 
 var sendEmail = function (o, cb) {
