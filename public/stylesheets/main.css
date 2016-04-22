@@ -120,6 +120,14 @@ body {
   text-align: center;
 }
 
+.panel-body {
+    padding: 15px;
+		padding-top: 10px;
+		padding-right: 15px;
+		padding-bottom: 10px;
+		padding-left: 15px;
+}
+
 footer {
   padding: 0px;
   font: 12px "Lucida Grande", Helvetica, Arial, sans-serif;
@@ -176,4 +184,18 @@ footer {
 .usr-header {
   line-height: 32px;
   text-align: right;
+}
+
+textarea:hover, 
+input:hover, 
+textarea:active, 
+input:active, 
+textarea:focus, 
+input:focus,
+a:focus,
+a:active,
+a:hover
+{
+    outline:0px !important;
+    -webkit-appearance:none;
 }

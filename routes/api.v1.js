@@ -9,6 +9,12 @@ router.route('/tasks/:task_id')
 	.delete(taskAPI.deleteTask)
 	.put(taskAPI.putTask);
 
+router.route('/tasks/broadcast/:TaskID')
+	.get(taskAPI.broadcastTask);
+
+router.route('/tasks/receive/:Code')
+	.get(taskAPI.receiveTask);
+
 router.route('/tasks')
 	.get(taskAPI.getTasks)
 	.post(taskAPI.createTask);
@@ -28,5 +34,11 @@ router.route('/users/create')
 
 router.route('/users/verify')
 	.post(userAPI.userVerify);
+
+router.route('/users/recover')
+	.post(userAPI.userRecover);
+
+router.route('/users/reset')
+	.post(userAPI.userReset);
 
 module.exports = router;

@@ -2,18 +2,18 @@
   <uib-accordion close-others=false>
     <uib-accordion-group template-url="task-accordion-template.html" ng-repeat="task in taskTree" is-open="metadata[task.TaskID].open" panel-class="metadata[task.TaskID].panel_type">
       <uib-accordion-heading-col-1>
-        <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, metadata[task.TaskID].toggleTo)" uib-tooltip="Mark this task as complete">
+        <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, metadata[task.TaskID].toggleTo)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Mark this task as complete">
           <span class="glyphicon" ng-class="{'glyphicon-check': task.Status == Constants.STATUS_COMPLETED, 'glyphicon-unchecked': task.Status == Constants.STATUS_INPROGRESS}"></span>
         </a>
       </uib-accordion-heading-col-1>
       <uib-accordion-heading>
-        <span uib-tooltip="Expand task details">
+        <span tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Expand task details">
           <span class="glyphicon" ng-class="{'glyphicon-chevron-down': metadata[task.TaskID].open, 'glyphicon-chevron-right': !metadata[task.TaskID].open}"></span>
           <b ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Title}}</b>
         </span>
       </uib-accordion-heading>
       <uib-accordion-heading-post-toggle>
-        <a class="btn btn-xs" ng-click="showTaskModal(task, task.ParentTaskID)" uib-tooltip="Edit this task">
+        <a class="btn btn-xs" ng-click="showTaskModal(task, task.ParentTaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Edit this task">
           <span class="glyphicon glyphicon-pencil"></span>
         </a>
         <span class="badge">
@@ -23,7 +23,7 @@
             <b ng-switch-default>Low</b>
           </b>
         </span>
-        <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "addFilterTag(tag)">
+        <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "addFilterTag(tag)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip = "Filter by this tag">
           {{tag}}
         </a>
       </uib-accordion-heading-post-toggle>
@@ -31,21 +31,27 @@
       </uib-accordion-heading-col-2>
       <uib-accordion-heading-col-3>
         <div class="pull-right">
-          <b>{{task.DateDue | date:'EEEE, MMM dd yyyy @ h:mm a'}}&nbsp&nbsp</b>
-          <a class="btn btn-xs" ng-click="broadcastTask(task.TaskID)" uib-tooltip="Broadcast this task">
+          <b>{{task.DateDue | date:"EEEE, MMM dd yyyy 'at' h:mm a"}}&nbsp&nbsp</b>
+          <a class="btn btn-xs" ng-click="broadcastTask(task.TaskID)" uib-popover="{{metadata[task.TaskID].broadcast_link}}" popover-is-open="metadata[task.TaskID].broadcast_open" popover-title="Broadcast Link" popover-append-to-body="true" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Broadcast this task">
             <span class="glyphicon glyphicon-export"></span>
-          </a>          
-          <a class="btn btn-xs" ng-click="delTask(task.TaskID)" uib-tooltip="Delete this task">
+          </a> 
+          <a class="btn btn-xs" ng-click="delTask(task.TaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Delete this task">
             <span class="glyphicon glyphicon-remove glyphicon-task-remove"></span>
           </a>
         </div>
       </uib-accordion-heading-col-3>
       <span ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">
-        <a class="btn btn-xs" data-type="plus" uib-tooltip="Add a new child task" ng-click="showTaskModal(null, task.TaskID)">
-          <span class="glyphicon glyphicon-plus"></span>
-        </a>
-        <div class="panel-body" ng-if="metadata[task.TaskID].children.length > 0" ng-repeat="taskTree in [metadata[task.TaskID].children]" ng-include="'task-template.html'"></div>
-        {{task.Description}}
+				<div class = "row">
+					<a class="btn btn-xs pull-left" style = "margin-left: 16px" data-type="plus" tooltip-popup-delay="1000" uib-tooltip="Add a new child task" ng-click="showTaskModal(null, task.TaskID)">					
+						<span class="glyphicon glyphicon-plus"></span>
+					</a>
+					<div class="panel-body col-xs-11" ng-if="metadata[task.TaskID].children.length > 0" ng-repeat="taskTree in [metadata[task.TaskID].children]" ng-include="'task-template.html'"></div>
+				</div>
+				<div class = "row" style = "margin-left: 30px">
+					<div class = "col-xs-11">
+					{{task.Description}}
+					</div>
+				</div>
       </span>
     </uib-accordion-group>
   </uib-accordion>

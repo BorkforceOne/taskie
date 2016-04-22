@@ -14,17 +14,20 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 		// Go to index 
       .when('/', {
         controller:'IndexController as indexController',
-        templateUrl:'/html/views/index.html'
+        templateUrl:'/html/views/index.html',
+        reloadOnSearch: false
       })
 	  // Go to login page 
       .when('/login', {
         controller:'LoginController as loginController',
-        templateUrl:'/html/views/login.html'
+        templateUrl:'/html/views/login.html',
+        reloadOnSearch: false
       })
 	  // Go to register 
       .when('/register', {
         controller:'RegisterController as registerController',
-        templateUrl:'/html/views/register.html'
+        templateUrl:'/html/views/register.html',
+        reloadOnSearch: false
       })
 	  // Go to index 
       .otherwise({
@@ -36,7 +39,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     // cb - call back function 
 	
 	// Data usage: {verificationCode: code}
-    api.verifyUser = function (data, cb) {
+    api.activateUser = function (data, cb) {
       var req = {
         method: 'POST',
         url: '/api/v1/users/verify',
@@ -125,6 +128,72 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+	/*
+	 * 	userRecover(data, callback function)
+	 *	
+	 *	Attempts to recover a user based on 
+	 *	email passed in by the user. 
+	 *	
+	 *	Sets up POST request with the user data 
+	 * 	passed in from the registration page and 
+	 * 	sends it. 
+	 */
+    api.userRecover = function(data, cb) {
+	  // Set up request for a register 
+      var req = {
+        method: 'POST',
+        url: '/api/v1/users/recover',
+        data: JSON.stringify({
+          Email: data.Email,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      }
+	  // Send the request 
+      return $http(req).
+        then(function(resp) {
+		  // On success, show user messages 
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+		  // On failure send error message 
+          return cb(resp.status, resp.data);
+      });
+    };
+
+	/*
+	 * 	userReset(data, callback function)
+	 *	
+	 *	Attempts to reset a user's password based on 
+	 *	code provided by the user. 
+	 *	
+	 *	Sets up POST request with the user data 
+	 * 	passed in from the registration page and 
+	 * 	sends it. 
+	 */
+    api.userReset = function(data, cb) {
+	  // Set up request for a register 
+      var req = {
+        method: 'POST',
+        url: '/api/v1/users/reset',
+        data: JSON.stringify({
+	        RecoveryCode: data.RecoveryCode,
+	        Password: data.Password,
+	        PasswordConf: data.PasswordConf,
+        }),
+        headers: {'Content-Type': 'application/json'},
+      }
+	  // Send the request 
+      return $http(req).
+        then(function(resp) {
+		  // On success, show user messages 
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+		  // On failure send error message 
+          return cb(resp.status, resp.data);
+      });
+    };
+
   /*
    *  userGet(data, callback function)
    *  
@@ -175,7 +244,37 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           return cb(resp.status, resp.data);
       });
     };
+
+    api.broadcastTask = function(data, cb) {
+      var req = {
+        method: 'GET',
+        url: '/api/v1/tasks/broadcast/' + data.TaskID,
+        headers: {'Content-Type': 'application/json'}
+      }
+      return $http(req).
+        then(function(resp) {
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+          return cb(resp.status, resp.data);
+      });
+    }
     
+    api.receiveTask = function(data, cb) {
+      var req = {
+        method: 'GET',
+        url: '/api/v1/tasks/receive/' + data.Code,
+        headers: {'Content-Type': 'application/json'}
+      }
+      return $http(req).
+        then(function(resp) {
+          processMessages(resp.data.messages);
+          return cb(null, resp.data);
+        }, function(resp) {
+          return cb(resp.status, resp.data);
+      });
+    }
+
 	/*
 	 *	addTask(data, cb)
 	 *	
@@ -430,17 +529,12 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
   }])
 
   
-  .controller('LoginController', ['$scope', '$http', '$location', '$routeParams', 'taskieAPI', function($scope, $http, $location, $routeParams, taskieAPI) {
+  .controller('LoginController', ['$scope', '$http', '$location', '$routeParams', '$uibModal', 'taskieAPI', function($scope, $http, $location, $routeParams, $uibModal, taskieAPI) {
     $scope.userinfo = {};
-
     $scope.userinfo.username = "";
     $scope.userinfo.password = "";
 
-    $scope.response = {};
-
-    $scope.url = $routeParams.url;
-
-    var userLogin = function () {
+    $scope.userLogin = function () {
       var data = {
         username: $scope.userinfo.username,
         password: $scope.userinfo.password
@@ -456,14 +550,20 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    $scope.userLogin = userLogin;
+    $scope.showRecoverPasswordModal = function () {
+      var modalInstance = $uibModal.open({
+        templateUrl: '/html/views/modals/recover-password.html',
+        controller: 'ModalRecoverPasswordController',
+        size: 'md',
+      });
+    };
 
-    var verifyUser = function (code) {
+    var activateUser = function (code) {
       var data = {
         verificationCode: code,
       };
       
-      taskieAPI.verifyUser(data, function (err, result) {
+      taskieAPI.activateUser(data, function (err, result) {
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
         if (result.success) {
@@ -472,11 +572,28 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    if ($routeParams.code != undefined) {
-      verifyUser($routeParams.code);
-      $location.search('code', null)
+    var resetUser = function(code) {
+      var modalInstance = $uibModal.open({
+        templateUrl: '/html/views/modals/reset-password.html',
+        controller: 'ModalResetPasswordController',
+        size: 'md',
+        resolve: {
+          code: function () {
+            return code;
+          },
+        }
+      });
     }
 
+    if ($routeParams.code != undefined) {
+    	if ($routeParams.type == "activation") {
+	      activateUser($routeParams.code);
+    	}
+    	if ($routeParams.type == "recover") {
+    		resetUser($routeParams.code);
+    	}
+    }
+    $location.url($location.path());
   }])
   .controller('RegisterController', ['$scope', '$http', '$location', 'taskieAPI', function($scope, $http, $location, taskieAPI) {
     $scope.userinfo = {};
@@ -511,6 +628,62 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     $scope.userRegister = userRegister;
   }])
+  .controller('ModalRecoverPasswordController', function ($scope, $uibModalInstance, taskieAPI) {
+  	$scope.email = "";
+
+
+    var userRecover = function() {
+      var data = {
+        Email: $scope.email,
+      }
+
+      taskieAPI.userRecover(data, function (err, result) {
+        // See if we actually got what we were expecting, despite possible
+        // messages from the server.
+        if (result.success) {
+          taskieAPI.showMessagesModal('Success!', ["Please check your email. We've sent an email to recover your account and reset your password!"]);
+        }
+      });
+    };
+
+    $scope.ok = function () {
+    	userRecover();
+      $uibModalInstance.close();
+    };
+
+    $scope.cancel = function () {
+      $uibModalInstance.dismiss('cancel');
+    };
+  })
+  .controller('ModalResetPasswordController', function ($scope, $uibModalInstance, taskieAPI, code) {
+  	$scope.email = "";
+  	$scope.code = code;
+
+    var userReset = function() {
+      var data = {
+        RecoveryCode: $scope.code,
+        Password: $scope.password,
+        PasswordConf: $scope.password_conf,
+      }
+
+      taskieAPI.userReset(data, function (err, result) {
+        // See if we actually got what we were expecting, despite possible
+        // messages from the server.
+        if (result.success) {
+          taskieAPI.showMessagesModal('Success!', ["You may now login!"]);
+          $uibModalInstance.close();
+        }
+      });
+    };
+
+    $scope.ok = function () {
+    	userReset();
+    };
+
+    $scope.cancel = function () {
+      $uibModalInstance.dismiss('cancel');
+    };
+  })
   .controller('ModalTaskController', function ($scope, $uibModalInstance, taskieAPI, task, parentID) {
     
     if (task == undefined) {
@@ -593,7 +766,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       taskieAPI.userGet(null, function (err, result) {
         if (result.success) {
           $scope.user = result.data;
-          console.log($scope.user);
         }
       });
     }
@@ -604,7 +776,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       taskieAPI.updateUser(data, function (err, result) {
         if (result.success) {
           $scope.user = result.data;
-          console.log($scope.user);
         }
       });
     }
@@ -634,6 +805,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
       modalInstance.result.then(function (task) {
         deleteUser();
+        $scope.cancel();
       }, function () {
         console.log("Phew, that was close!");
       });
@@ -648,7 +820,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       $uibModalInstance.dismiss('cancel');
     };
   })
-  .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', 'taskieAPI', function($scope, $http, $location, $uibModal, taskieAPI) {
+  .controller('IndexController', ['$scope', '$http', '$location', '$uibModal', '$routeParams', 'taskieAPI', function($scope, $http, $location, $uibModal, $routeParams, taskieAPI) {
     /* Define $scope variables that will be used here */
 
     $scope.tasks = [];
@@ -666,7 +838,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     // Watch our raw tasks here and update the list as stuff changes
     $scope.$watch('[tasks, sortBy, filterTags]', function (){
-      var tasksSorted = [];
+      console.log($scope.tasks);
+      var tasks = [];
       var metadata = {};
 
       var buildTree = function (data) {
@@ -690,7 +863,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
             //lookup the parent
             if (datum.ParentTaskID != null) {
               //Let's add the current node as a child of the parent node.
-              metadata[idToNodeMap[datum.ParentTaskID].TaskID].children.push(datum);
+              if (idToNodeMap[datum.ParentTaskID])
+	              metadata[idToNodeMap[datum.ParentTaskID].TaskID].children.push(datum);
             }
             else {
               root.push(datum);
@@ -707,6 +881,13 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         var filtered = false;
         for (var filterTagIndex=0; filterTagIndex<$scope.filterTags.length; filterTagIndex++) {
           var found = false;
+					// Check if there are not tags assosciated with the task. If there are not tags 
+					// 	assosciated with it, make it filtered and break out of the loop because you 
+					//	don't want to compare a list of tasks to an empty list. 
+					if (task.Tags == null){
+						filtered == true;
+						break;
+					}
           for (var taskTagIndex=0; taskTagIndex<task.Tags.length; taskTagIndex++) {
             if ($scope.filterTags[filterTagIndex] == task.Tags[taskTagIndex]) {
               found = true;
@@ -720,20 +901,30 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         }
 
         if (!filtered) {
-          tasksSorted.push(task);
+          tasks.push(task);
         }
+      }
+
+      // Step 3, push all completed tasks to the end
+      var tasksCompleted = [];
+      var tasksInProgress = [];
+      for (var i in tasks) {
+        if (tasks[i].Status == Constants.STATUS_COMPLETED)
+          tasksCompleted.push(tasks[i]);
+        if (tasks[i].Status == Constants.STATUS_INPROGRESS)
+          tasksInProgress.push(tasks[i]);
       }
 
       // Step 2: Sort by whatever we're sorting by
       switch ($scope.sortBy) {
         case "DateDue":
-          tasksSorted.sort(function (a, b) {
+          tasksInProgress.sort(function (a, b) {
             return moment(a.DateDue) - moment(b.DateDue);
           });
         break;
 
         case "Priority":
-          tasksSorted.sort(function (a, b) {
+          tasksInProgress.sort(function (a, b) {
             var result = b.Priority - a.Priority;
             if (result == 0) {
               return moment(a.DateDue) - moment(b.DateDue);
@@ -743,21 +934,16 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         break;
 
         case "Alphabetical":
-          tasksSorted.sort(function (a, b) {
+          tasksInProgress.sort(function (a, b) {
             return a.Title.localeCompare(b.Title);
           });
         break;
       }
 
-      // Step 3, push all completed tasks to the end
-      var tasksCompleted = [];
-      var tasksInProgress = [];
-      for (var i in tasksSorted) {
-        if (tasksSorted[i].Status == Constants.STATUS_COMPLETED)
-          tasksCompleted.push(tasksSorted[i]);
-        if (tasksSorted[i].Status == Constants.STATUS_INPROGRESS)
-          tasksInProgress.push(tasksSorted[i]);
-      }
+      tasksCompleted.sort(function (a, b) {
+        return moment(b.DateUpdated) - moment(a.DateUpdated);
+      });
+
 
       tasksSorted = tasksInProgress.concat(tasksCompleted);
 
@@ -780,8 +966,14 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         else {
           metadata[task.TaskID].toggleTo = Constants.STATUS_COMPLETED;
         }
-      }
 
+        // Copy existing metadata that we care about
+
+        if ($scope.metadata[task.TaskID]) {
+          metadata[task.TaskID].open = $scope.metadata[task.TaskID].open;
+        }
+      }
+      
       $scope.metadata = metadata;
       $scope.tasksSorted = tasksSorted;
     }, true);
@@ -832,7 +1024,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         // messages from the server.
         if (result.success) {
           // Set the tasks to the list we just got back!
-          $scope.tasks = $scope.tasks.concat(result.data);
+          $scope.tasks.push(result.data[0]);
         }
       });
     };
@@ -875,7 +1067,24 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
-    $scope.showTaskModal = function(task, parentID) {
+    $scope.broadcastTask = function (TaskID) {
+    	var data = {
+    		TaskID: TaskID,
+    	}
+
+    	if ($scope.metadata[TaskID].broadcast_link == null) {
+	      taskieAPI.broadcastTask(data, function (err, result) {
+	        // See if we actually got what we were expecting, despite possible
+	        // messages from the server.
+	        if (result.success) {
+	        	$scope.metadata[TaskID].broadcast_link = result.data.Link;
+	        	$scope.metadata[TaskID].broadcast_open = true;
+	        }
+	      });
+	    }
+    }
+
+    $scope.showTaskModal = function(task, parentID, received) {
       var modalInstance = $uibModal.open({
         templateUrl: '/html/views/modals/task.html',
         controller: 'ModalTaskController',
@@ -892,10 +1101,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
       modalInstance.result.then(function (task) {
         if (task.TaskID == undefined) {
-          addTask(task.Title, task.Description, task.DateDue, task.Tags, task.Priority, task.ParentTaskID);
+	        addTask(task.Title, task.Description, task.DateDue, task.Tags, task.Priority, task.ParentTaskID);
         }
         else {
-          updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags, task.Priority, task.ParentTaskID);
+	        updateTask(task.TaskID, task.Title, task.Description, task.DateDue, task.Status, task.Tags, task.Priority, task.ParentTaskID);
         }
       }, function () {
         //console.log('Modal dismissed at: ' + new Date());
@@ -921,7 +1130,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 		$scope.addFilterTag = function(tag){
 			for (var i=0; i<$scope.filterTags.length; i++){
 				if ($scope.filterTags[i] == tag){
-					console.log('Can\'t add duplicate tags to sort by.');
+					console.log("Can't add duplicate tags to sort by");
 					return -1;
 				}
 			}
@@ -946,6 +1155,21 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
 
+    var receiveTask = function(code) {
+      var data = {
+        Code: code,
+      };
+
+      taskieAPI.receiveTask(data, function (err, result) {
+        // See if we actually got what we were expecting, despite possible
+        // messages from the server.
+        if (result.success) {
+        	var task = result.data;
+        	$scope.showTaskModal(task, null);
+        }
+      });
+    }
+
     userGet();
     getTasks();
 
@@ -953,6 +1177,12 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     $scope.updateTask = updateTask;
     $scope.getTasks = getTasks;
     $scope.delTask = delTask;
+
+  	if ($routeParams.receive != undefined) {
+  		receiveTask($routeParams.receive);
+  	}
+
+    $location.url($location.path());
   }])
   .directive('convertToNumber', function() {
     return {

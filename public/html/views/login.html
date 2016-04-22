@@ -8,8 +8,9 @@
 	    <div class="login-group">
 	      <input class="form-control" name="username" placeholder="Username" required="" ng-model="userinfo.username" type="text">
 	      <input class="form-control" name="password" placeholder="Password" required="" ng-model="userinfo.password" type="password">
-	      <a id="SingIn" class="btn btn-lg half-span btn-success" ng-click="userLogin()">Sign In</a>
+	      <a id="SignIn" class="btn btn-lg half-span btn-success" ng-click="userLogin()">Sign In</a>
 	      <a href="#/register" class="btn btn-lg half-span btn-success">Sign Up</a>
+	      or <a href="" ng-click="showRecoverPasswordModal()">forgot password</a>
 	    </div>
 	  </div>
 	</div>
@@ -18,13 +19,11 @@
 	$(document).ready(function() {
     	$(".login-group").on("keypress", function(e){
     		if(e.which == 13){
-    			$("#SingIn").click();
+    			$("#SignIn").click();
     		}
     	});
     	$(window).resize(function(){
-
 		    $('.login-container').css('padding-top', ($(window).height())/3.5);
-
 		});
 		$(window).resize();
 	});
