@@ -56,7 +56,7 @@
 
 .form-signup {
   width: 100%;
-  padding: 15px;
+  padding: 15px 15px 30px 15px;
   margin: 0 auto;
 }
 
@@ -141,6 +141,10 @@ footer {
   width: 49%;
 }
 
+.btn.full-span {
+  width: 100%;
+}
+
 .accordion-toggle {
   outline: none;
 }
@@ -151,8 +155,9 @@ footer {
 }
 
 .btn-tag{
-  margin: 5px;
+  margin-left: 5px;
 }
+
 
 .navbar-default {
   background-color: #6bb36b;
@@ -198,4 +203,16 @@ a:hover
 {
     outline:0px !important;
     -webkit-appearance:none;
+}
+
+.task-desc {
+  word-wrap: break-word;
+}
+
+.progress {
+  margin-bottom: 0;
+}
+
+.resize-v{
+  resize: vertical;
 }

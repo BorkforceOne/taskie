@@ -12,6 +12,7 @@ var database = require('./database.js');
 var mysql = require('mysql');
 var email = require('./email');
 var crypto = require('crypto');
+var async = require('async');
 
 var jsonifyTask = function (entry) {
 	return entry;
@@ -69,7 +70,26 @@ var deleteTask = function (params, cb) {
 		if (rows.affectedRows == 0) {
 			return cb(err, createResponse(false, ['task-delete-error', 'task-nonexistent'], {}));
 		}
-		return cb(null, createResponse(true, [], {}));
+		sql = "SELECT TaskID FROM `Tasks` WHERE `ParentTaskID` = ? AND `UserID` = ?"
+		inserts = [params.tid, params.uid];
+	  sql = mysql.format(sql, inserts);
+	  database.connectionPool.query(sql, function(err, rows, fields) {
+	    if (err) {
+				console.error('ERROR [tasks.js]: %s', err);
+				return cb(err, createResponse(false, ['task-delete-error'], {}));
+	    }
+	    if (rows.length == 0) {
+	    	return cb(null, createResponse(true, [], {}));
+	    }
+			async.eachSeries(rows, function iteratee(task, callback) {
+				deleteTask({tid: task.TaskID, uid: params.uid}, callback);
+			}, function done(err) {
+					if (err) {
+						return cb(err, createResponse(false, ['task-delete-error'], {}));
+					}
+					return cb(null, createResponse(true, [], {}));
+			});
+		});
   });
 };
 
@@ -326,7 +346,7 @@ var receiveTask = function(params, cb) {
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {
 			console.error('ERROR [tasks.js]: %s', err);
-			return cb(err, createResponse(false, ['task-broadcast-error'], {}));
+			return cb(err, createResponse(false, ['task-recieve-error'], {}));
     }
     if (rows.length == 0) {
     	err = "No task with that code exists in the Broadcasts table."

@@ -490,6 +490,51 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
             title = "Registration Error";
             niceMessages.push("Password must be at least 6 characters long");
             break;
+					
+					case 'user-update-error':
+						title = "Update error";
+						niceMessages.push("An error occured updating your settings. Please try again.");
+						break;
+						
+					case 'user-delete-error':
+						title = "Deletion Error";
+						niceMessages.push("An error occured while deleting your user account.");
+						break;
+						
+					case 'user-recover-error':
+						title = "Account Recovery Error";
+						niceMessages.push("An error occured when recovering your account. Please try again later.");
+						break;
+						
+					case 'user-reset-error':
+						title = "Account Reset Error";
+						niceMessages.push("An issue occured when trying to resetting your account. Please try again later.");
+						break;
+						
+					case 'task-broadcast-error':
+						title = "Error with task broadcasting.";
+						niceMessages.push("An issue occured when trying to broadcast the task.");
+						break;
+						
+					case 'task-recieve-nonexistent':
+						title = "Recieve task error.";
+						niceMessages.push("The task you are trying to recieve doesn't exist.");
+						break;
+						
+					case 'task-receive-error':
+						title = "Recieve task error";
+						niceMessages.push("An error occured when receiving the task.");
+						break;
+						
+					case 'task-update-error':
+						title = "Task Update Error";
+						niceMessages.push("An error occured saving changes to your task. Please try again later.");
+						break;
+						
+					case 'user-login-reset-error':
+						title = "Error Logging In";
+						niceMessages.push("That account has requested a password reset. Please try to login again after resetting your password.");
+						break;
 
           default:
             niceMessages.push(messages[i]);
@@ -621,7 +666,19 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
         if (result.success) {
+          $scope.userinfo.username = "";
+          $scope.userinfo.password = "";
+          $scope.userinfo.password_conf = "";
+          $scope.userinfo.firstname = "";
+          $scope.userinfo.lastname = "";
+          $scope.userinfo.email = "";
+          $scope.userinfo.email_conf = "";
           taskieAPI.showMessagesModal('Success!', ["Please check your email. We've sent an email to verify your account!", "You may login as soon as you verify your account"]);
+        }
+        else {
+          $scope.userinfo.username = "";
+          $scope.userinfo.firstname = "";
+          $scope.userinfo.lastname = "";
         }
       });
     };
@@ -838,7 +895,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
     // Watch our raw tasks here and update the list as stuff changes
     $scope.$watch('[tasks, sortBy, filterTags]', function (){
-      console.log($scope.tasks);
       var tasks = [];
       var metadata = {};
 
@@ -872,9 +928,31 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         }
         return root;
       }
+			
 
       var tmpTasks = buildTree($scope.tasks);
-
+			
+			var getProgress = function(task){
+				var counter = 0;
+				var childrenTasks = metadata[task.TaskID].children;
+				if (task.Status == Constants.STATUS_COMPLETED){
+					metadata[task.TaskID].progress = 100;
+					counter += 100;
+				}
+				else{
+					metadata[task.TaskID].progress = 0;
+				}
+				for (var j = 0; j< childrenTasks.length; j++){
+					getProgress(childrenTasks[j]);
+					counter += metadata[childrenTasks[j].TaskID].progress;
+				}
+				metadata[task.TaskID].progress = Math.round(counter / (childrenTasks.length + 1));			
+			}
+			
+			for(var i = 0; i < tmpTasks.length; i++){
+				getProgress(tmpTasks[i]);
+			}	
+			
       // Step 1: Only add non-filtered tasks
       for (var i=0; i<tmpTasks.length; i++) {
         var task = tmpTasks[i];
@@ -938,12 +1016,17 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
             return a.Title.localeCompare(b.Title);
           });
         break;
+				
+				case "Completion":
+					tasksInProgress.sort(function (a, b){
+						return metadata[b.TaskID].progress - metadata[a.TaskID].progress;
+					});
+					break;
       }
 
       tasksCompleted.sort(function (a, b) {
         return moment(b.DateUpdated) - moment(a.DateUpdated);
       });
-
 
       tasksSorted = tasksInProgress.concat(tasksCompleted);
 
@@ -971,6 +1054,9 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
         if ($scope.metadata[task.TaskID]) {
           metadata[task.TaskID].open = $scope.metadata[task.TaskID].open;
+          if (task.Description == null && metadata[task.TaskID].children.length == 0) {
+            metadata[task.TaskID].open = false;
+          }
         }
       }
       
@@ -1040,6 +1126,15 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     		priority: priority,
         parent_id: parent_id,
       };
+
+      if (data.status) {
+        // Update the status on all the sub tasks as well!
+        console.log($scope.metadata[data.task_id]);
+
+        for (var i =0; i < $scope.metadata[data.task_id].children.length; i++) {
+          updateTask($scope.metadata[data.task_id].children[i].TaskID, null, null, null, data.status, null, null, null);
+        }
+      }
 
       taskieAPI.updateTask(data, function (err, result) {
         // See if we actually got what we were expecting, despite possible
@@ -1111,6 +1206,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
       });
     };
     
+    $scope.isSimple = function (task) {
+      return (task.Description == null && $scope.metadata[task.TaskID].children.length == 0);
+    }
+
     $scope.taskGetDueDate = function (task) {
       return moment(task.DateDue);
     }
@@ -1146,6 +1245,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 			}
 			$scope.filterTags = filter_tags;
 		}
+
 
     $scope.showUserSettingsModal = function() {
       var modalInstance = $uibModal.open({

@@ -1,21 +1,31 @@
 <script type="text/ng-template"  id="task-template.html">
   <uib-accordion close-others=false>
-    <uib-accordion-group template-url="task-accordion-template.html" ng-repeat="task in taskTree" is-open="metadata[task.TaskID].open" panel-class="metadata[task.TaskID].panel_type">
+    <uib-accordion-group template-url="task-accordion-template.html" ng-repeat="task in taskTree" is-open="metadata[task.TaskID].open" simple="isSimple(task)" panel-class="metadata[task.TaskID].panel_type">
       <uib-accordion-heading-col-1>
         <a class="btn btn-xs" ng-click="updateTask(task.TaskID, undefined, undefined, undefined, metadata[task.TaskID].toggleTo)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Mark this task as complete">
           <span class="glyphicon" ng-class="{'glyphicon-check': task.Status == Constants.STATUS_COMPLETED, 'glyphicon-unchecked': task.Status == Constants.STATUS_INPROGRESS}"></span>
         </a>
       </uib-accordion-heading-col-1>
       <uib-accordion-heading>
-        <span tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Expand task details">
-          <span class="glyphicon" ng-class="{'glyphicon-chevron-down': metadata[task.TaskID].open, 'glyphicon-chevron-right': !metadata[task.TaskID].open}"></span>
+        <span>
+          <span ng-switch="isSimple(task)">
+            <span ng-switch-when="false">
+              <span class="glyphicon" ng-class="{'glyphicon-chevron-down': metadata[task.TaskID].open, 'glyphicon-chevron-right': !metadata[task.TaskID].open}"></span>
+            </span>
+            <span ng-switch-default></span>
+          </span>
           <b ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">{{task.Title}}</b>
         </span>
       </uib-accordion-heading>
       <uib-accordion-heading-post-toggle>
-        <a class="btn btn-xs" ng-click="showTaskModal(task, task.ParentTaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Edit this task">
-          <span class="glyphicon glyphicon-pencil"></span>
-        </a>
+        <div class = "btn-group">
+          <a class="btn btn-xs" ng-click="showTaskModal(task, task.ParentTaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Edit this task">
+            <span class="glyphicon glyphicon-pencil"></span>
+          </a>
+          <a class="btn btn-xs" data-type="plus" tooltip-popup-delay="1000" uib-tooltip="Add a new child task" ng-click="showTaskModal(null, task.TaskID)">     
+            <span class="glyphicon glyphicon-plus"></span>
+          </a>
+        </div>
         <span class="badge">
           <b ng-switch="task.Priority">
             <b ng-switch-when="1">Medium</b>
@@ -28,6 +38,12 @@
         </a>
       </uib-accordion-heading-post-toggle>
       <uib-accordion-heading-col-2>
+				<uib-progressbar value = "metadata[task.TaskID].progress" type = "info">
+          <b ng-switch="metadata[task.TaskID].progress">
+            <b ng-switch-when="0"></b>
+            <b ng-switch-default>{{metadata[task.TaskID].progress}}%</b>
+          </b>
+				</uib-progressbar>
       </uib-accordion-heading-col-2>
       <uib-accordion-heading-col-3>
         <div class="pull-right">
@@ -41,16 +57,13 @@
         </div>
       </uib-accordion-heading-col-3>
       <span ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">
+        <div class = "row" style = "margin-left: 30px">
+          <div class = "col-xs-12 task-desc">
+          {{task.Description}}
+          </div>
+        </div>
 				<div class = "row">
-					<a class="btn btn-xs pull-left" style = "margin-left: 16px" data-type="plus" tooltip-popup-delay="1000" uib-tooltip="Add a new child task" ng-click="showTaskModal(null, task.TaskID)">					
-						<span class="glyphicon glyphicon-plus"></span>
-					</a>
-					<div class="panel-body col-xs-11" ng-if="metadata[task.TaskID].children.length > 0" ng-repeat="taskTree in [metadata[task.TaskID].children]" ng-include="'task-template.html'"></div>
-				</div>
-				<div class = "row" style = "margin-left: 30px">
-					<div class = "col-xs-11">
-					{{task.Description}}
-					</div>
+					<div class="panel-body col-xs-12" ng-if="metadata[task.TaskID].children.length > 0" ng-repeat="taskTree in [metadata[task.TaskID].children]" ng-include="'task-template.html'"></div>
 				</div>
       </span>
     </uib-accordion-group>
@@ -62,10 +75,20 @@
     <div class="panel-heading">
       <h4 class="panel-title">
 		<div class='row'>
-			<div class='col-sm-7'>
+			<div class='col-sm-5'>
 				<span uib-accordion-transclude="headingCol1"><span uib-accordion-header>{{headingCol1}}</span></span>
-				<a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading"><span uib-accordion-header>{{heading}}</span></a>
+        <span ng-switch="simple">
+          <span ng-switch-when="false">
+            <a href tabindex="0" class="accordion-toggle" ng-click="toggleOpen()" uib-accordion-transclude="heading"><span tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Expand task details" uib-accordion-header>{{heading}}</span></a>
+          </span>
+          <span ng-switch-default>
+            <b uib-accordion-transclude="heading"><span uib-accordion-header>{{heading}}</span></b>
+          </span>
+        </span>
 				<span uib-accordion-transclude="headingPostToggle"><span uib-accordion-header>{{headingPostToggle}}</span></span>
+			</div>
+			<div class='col-sm-2'>
+				<span uib-accordion-transclude="headingCol2"><span uib-accordion-header>{{headingCol2}}</span></span>
 			</div>
 			<div class='col-sm-5'>
 				<span uib-accordion-transclude="headingCol3"><span uib-accordion-header>{{headingCol3}}</span></span>
@@ -108,33 +131,34 @@
         <span class="glyphicon glyphicon-plus"></span>
       </a>
       <b>Tasks</b>
-				<div class = "btn-group">
-					<a class="btn-tag btn btn-xs btn-primary" ng-repeat="tag in filterTags" ng-click = "delFilterTag(tag)">
-              {{tag}}
-          </a>
-				</div>
-				<div class="pull-right">
-          <b>Sort By: </b>
-					<div class="btn-group">
-						<span class="btn btn-xs btn-primary">
-              <b ng-switch="sortBy">
-                <b ng-switch-when="DateDue">Due Date</b>
-                <b ng-switch-when="Priority">Priority</b>
-								<b ng-switch-when="Alphabetical">Alphabetical</b>
-								<b ng-switch-when="Tag">Tag</b>
-              </b>
-            </span>
-						<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<span class="caret"></span>
-						<span class="sr-only">Toggle Dropdown</span>
-						</button>
-						<div class="dropdown-menu dropdown-menu-primary">
-							<li><a href="" ng-click = "setSortBy('DateDue')">Due Date</a></li>
-							<li><a href="" ng-click = "setSortBy('Priority')">Priority</a></li>
-							<li><a href="" ng-click = "setSortBy('Alphabetical')">Alphabetical</a></li>
-						</div>
+			<div class = "btn-group">
+				<a class="btn-tag btn btn-xs btn-primary" ng-repeat="tag in filterTags" ng-click = "delFilterTag(tag)">
+						{{tag}}
+				</a>
+			</div>
+			<div class="pull-right">
+				<b>Sort By: </b>
+				<div class="btn-group">
+					<span class="btn btn-xs btn-primary">
+						<b ng-switch="sortBy">
+							<b ng-switch-when="DateDue">Due Date</b>
+							<b ng-switch-when="Priority">Priority</b>
+							<b ng-switch-when="Alphabetical">Alphabetical</b>
+							<b ng-switch-when="Completion">Completion</b>
+						</b>
+					</span>
+					<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					<span class="caret"></span>
+					<span class="sr-only">Toggle Dropdown</span>
+					</button>
+					<div class="dropdown-menu dropdown-menu-primary">
+						<li><a href="" ng-click = "setSortBy('DateDue')">Due Date</a></li>
+						<li><a href="" ng-click = "setSortBy('Priority')">Priority</a></li>
+						<li><a href="" ng-click = "setSortBy('Alphabetical')">Alphabetical</a></li>
+						<li><a href="" ng-click = "setSortBy('Completion')">Completion</a></li>
 					</div>
 				</div>
+			</div>
     </div>
     <div class="panel-body" ng-if="tasksSorted.length > 0" ng-repeat="taskTree in [tasksSorted]" ng-include="'task-template.html'"></div>
   </div>

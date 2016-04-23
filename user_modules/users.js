@@ -175,8 +175,14 @@ var userLogin = function (params, cb) {
 			var user = result.data;
 			return validatePassword(params.Password, user.Password, user.Salt, function (err, result) {
 				if (result) { // Valid login, check for account verification
-					if (user.VerificationCode)
-						return cb (null, createResponse(false, ['confirm-account-error'], {}));
+					if (user.VerificationCode) {
+						if (user.Status == 2) {
+							return cb (null, createResponse(false, ['user-login-reset-error'], {}));
+						}
+						else {
+							return cb (null, createResponse(false, ['confirm-account-error'], {}));
+						}
+					}
 					return cb (null, createResponse(true, [], scrubUser(user)), user.UserID);
 				}
 				return cb (null, createResponse(false, ['user-login-error'], {}));
@@ -187,7 +193,7 @@ var userLogin = function (params, cb) {
 };
 
 var consumeVerficationCode = function (params, cb) {
-  var sql = "SELECT `UserID` FROM `Users` WHERE `VerificationCode` = ?";
+  var sql = "SELECT `UserID` FROM `Users` WHERE `VerificationCode` = ? AND `Status` = 1";
   var inserts = [params.verificationCode];
   sql = mysql.format(sql, inserts);
 
@@ -197,7 +203,7 @@ var consumeVerficationCode = function (params, cb) {
 			return cb(err, createResponse(false, ['verifcode-consume-error'], {}));
     }
 		if (rows.length == 1) {
-			var sql = "UPDATE `Users` SET `VerificationCode` = NULL WHERE `UserID` = ?";
+			var sql = "UPDATE `Users` SET `VerificationCode` = NULL, `Status` = 0 WHERE `UserID` = ? AND `Status` = 1";
 			var inserts = [rows[0].UserID];
 			sql = mysql.format(sql, inserts);
 			database.connectionPool.query(sql, function(err, rows, fields) {
@@ -482,7 +488,7 @@ var resetUser = function (params, cb) {
 				}
 				var password = hash;
 
-				var sql = "UPDATE `Users` SET `Status` = 0, `VerificationCode` = '', `Password` = ?, `Salt` = ? WHERE `VerificationCode` = ?";
+				var sql = "UPDATE `Users` SET `Status` = 0, `VerificationCode` = '', `Password` = ?, `Salt` = ? WHERE `VerificationCode` = ? AND `Status` = 2";
 				var sql_inserts = [password, salt, params.RecoveryCode];
 				sql = mysql.format(sql, sql_inserts);
 			  database.connectionPool.query(sql, function(err, rows, fields) {
