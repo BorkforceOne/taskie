@@ -156,6 +156,9 @@ footer {
 
 .btn-tag{
   margin-left: 5px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 
@@ -215,4 +218,8 @@ a:hover
 
 .resize-v{
   resize: vertical;
+}
+
+.break-all{
+  word-break: break-all;
 }

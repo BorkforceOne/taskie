@@ -11,7 +11,7 @@ head
                 td(colspan='3', height='6')
               tr(style='line-height: 0px;')
                 td(width='100%', style='font-size: 0px;', align='center', height='1')
-                  img(width='40px', style='max-height: 110px; width: 70px; *width: 70px; *height: 110px;', alt='', src='https://app.taskie.xyz/images/taskie-logo.png')
+                  img(style='width: 70px; height: 70px;', alt='', src='https://app.taskie.xyz/images/taskie-logo-70x70.png')
               tr
                 td
                   table(cellpadding='0', cellspacing='0', style='line-height: 25px;', border='0', align='center')
@@ -34,6 +34,8 @@ head
                           | Please reset your account password by clicking&nbsp;
                           a(href='#{recoveryUrl}') here
                           | .
+                        p
+                          | For reference, your username is: #{username}
                         p   - The #{application} team
                         //- ----------------------------------------------------------------------------------
                       td(width='36')

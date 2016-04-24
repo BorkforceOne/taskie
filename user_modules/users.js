@@ -254,6 +254,7 @@ var sendEmailRecover = function (userinfo) {
                    subject: 'Taskie Account Recovery',
                    vars: {name: userinfo.firstname,
                           recoveryUrl: recoveryUrl,
+                          username: userinfo.username,
                           mailtoAddress: 'webmaster@taskie.xyz',
                           mailtoName: 'Taskie Support'}},
                   function (err, results) {
@@ -450,7 +451,7 @@ var recoverUser = function (params, cb) {
 						console.error('ERROR [users.js]: %s', err);
 						return cb(err, createResponse(false, ['user-recover-error'], {}));
 			    }
-			    var params_new = {email: user.Email, recoveryCode: code, firstname: user.Firstname};
+			    var params_new = {email: user.Email, recoveryCode: code, firstname: user.Firstname, username: user.Username};
 			    sendEmailRecover(params_new);
 			    return cb(null, createResponse(true, [], []));
 		    });

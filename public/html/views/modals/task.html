@@ -27,10 +27,10 @@
           </a>
         </span>
       </div>
-      <div class = "btn-toolbar">
-        <a class="btn-tag btn btn-xs btn-info" ng-repeat="tag in task.Tags" ng-click = "removeTaskTag(tag)">
-        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        {{tag}}
+      <div class = "btn-group" style="margin-top: 5px">
+        <a class="btn-tag btn btn-xs btn-info" style="margin-bottom: 5px;margin-right: 5px;" ng-repeat="tag in task.Tags" ng-click = "removeTaskTag(tag)">
+          <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+          {{tag}}
         </a>
       </div>
     </div>

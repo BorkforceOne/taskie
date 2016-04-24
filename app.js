@@ -118,7 +118,7 @@ var notifyTasks = function () {
 
 setInterval(function () {
   notifyTasks();
-}, 600000);
+}, 300000);
 
 notifyTasks();
 

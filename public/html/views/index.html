@@ -38,22 +38,29 @@
         </a>
       </uib-accordion-heading-post-toggle>
       <uib-accordion-heading-col-2>
-				<uib-progressbar value = "metadata[task.TaskID].progress" type = "info">
-          <b ng-switch="metadata[task.TaskID].progress">
-            <b ng-switch-when="0"></b>
-            <b ng-switch-default>{{metadata[task.TaskID].progress}}%</b>
-          </b>
-				</uib-progressbar>
+        <span ng-switch="metadata[task.TaskID].children.length == 0">
+          <span ng-switch-when="false">
+            <uib-progressbar value = "metadata[task.TaskID].progress" type = "info">
+              <b ng-switch="metadata[task.TaskID].progress">
+                <b ng-switch-when="0"></b>
+                <b ng-switch-default>{{metadata[task.TaskID].progress}}%</b>
+              </b>
+            </uib-progressbar>
+          </span>
+          <span ng-switch-default></span>
+        </span>
       </uib-accordion-heading-col-2>
       <uib-accordion-heading-col-3>
         <div class="pull-right">
           <b>{{task.DateDue | date:"EEEE, MMM dd yyyy 'at' h:mm a"}}&nbsp&nbsp</b>
-          <a class="btn btn-xs" ng-click="broadcastTask(task.TaskID)" uib-popover="{{metadata[task.TaskID].broadcast_link}}" popover-is-open="metadata[task.TaskID].broadcast_open" popover-title="Broadcast Link" popover-append-to-body="true" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Broadcast this task">
-            <span class="glyphicon glyphicon-export"></span>
-          </a> 
-          <a class="btn btn-xs" ng-click="delTask(task.TaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Delete this task">
-            <span class="glyphicon glyphicon-remove glyphicon-task-remove"></span>
-          </a>
+        	<div class="btn-group" role="group">
+	          <a class="btn btn-xs" ng-click="broadcastTask(task.TaskID)" popover-is-open="metadata[task.TaskID].broadcast_open" popover-trigger="click outsideClick" popover-append-to-body="true" uib-popover-template="'broadcast-popup.html'" tooltip-append-to-body="true" popover-title="Broadcast Link" tooltip-popup-delay="1000" uib-tooltip="Broadcast this task">
+	            <span class="glyphicon glyphicon-export"></span>
+	          </a> 
+	          <a class="btn btn-xs" ng-click="delTask(task.TaskID)" tooltip-append-to-body="true" tooltip-popup-delay="1000" uib-tooltip="Delete this task">
+	            <span class="glyphicon glyphicon-remove glyphicon-task-remove"></span>
+	          </a>
+        	</div>
         </div>
       </uib-accordion-heading-col-3>
       <span ng-class="{'strike-through': task.Status == Constants.STATUS_COMPLETED}">
@@ -75,7 +82,7 @@
     <div class="panel-heading">
       <h4 class="panel-title">
 		<div class='row'>
-			<div class='col-sm-5'>
+			<div class='col-sm-5 break-all'>
 				<span uib-accordion-transclude="headingCol1"><span uib-accordion-header>{{headingCol1}}</span></span>
         <span ng-switch="simple">
           <span ng-switch-when="false">
@@ -105,7 +112,7 @@
 <nav class="navbar navbar-default">
   <div class="container-fluid">
     <div class="navbar-header">
-      <a class="navbar-brand">Welcome {{user.Username}}</a>
+      <a class="navbar-brand">Welcome {{user.Firstname}}</a>
     </div>
     <ul class="nav navbar-nav navbar-right">
       <li class="dropdown">
@@ -119,6 +126,11 @@
   </div><!-- /.container-fluid -->
 </nav>
 
+<script id="broadcast-popup.html" type="text/ng-template">
+	<div>
+		<input id="broadcastLink" type="text" class="form-control" onfocus="this.select();document.execCommand('copy');" onmouseup="return false;" readonly ng-model="metadata[task.TaskID].broadcast_link"\>
+	</div>
+</script>
 
 <div class="title">
     Taskie
@@ -162,6 +174,9 @@
     </div>
     <div class="panel-body" ng-if="tasksSorted.length > 0" ng-repeat="taskTree in [tasksSorted]" ng-include="'task-template.html'"></div>
   </div>
+  <footer class="footer">
+     <p>Question or concern? Feel free to <a href="mailto:webmaster@taskie.xyz?Subject=Inquiry">contact us</a>!</p>
+  </footer>
 </div>
 
 

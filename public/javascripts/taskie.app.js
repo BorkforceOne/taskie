@@ -5,7 +5,6 @@ $.ajaxSetup({
   }
 });
 
-
 angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 	// Defines views 
   .config(function($routeProvider) {
@@ -676,9 +675,10 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
           taskieAPI.showMessagesModal('Success!', ["Please check your email. We've sent an email to verify your account!", "You may login as soon as you verify your account"]);
         }
         else {
-          $scope.userinfo.username = "";
-          $scope.userinfo.firstname = "";
-          $scope.userinfo.lastname = "";
+          $scope.userinfo.password = "";
+          $scope.userinfo.password_conf = "";
+          $scope.userinfo.email = "";
+          $scope.userinfo.email_conf = "";
         }
       });
     };
@@ -1054,7 +1054,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 
         if ($scope.metadata[task.TaskID]) {
           metadata[task.TaskID].open = $scope.metadata[task.TaskID].open;
-          if (task.Description == null && metadata[task.TaskID].children.length == 0) {
+          if ((task.Description == null || task.Description == "") && metadata[task.TaskID].children.length == 0) {
             metadata[task.TaskID].open = false;
           }
         }
@@ -1127,15 +1127,6 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         parent_id: parent_id,
       };
 
-      if (data.status) {
-        // Update the status on all the sub tasks as well!
-        console.log($scope.metadata[data.task_id]);
-
-        for (var i =0; i < $scope.metadata[data.task_id].children.length; i++) {
-          updateTask($scope.metadata[data.task_id].children[i].TaskID, null, null, null, data.status, null, null, null);
-        }
-      }
-
       taskieAPI.updateTask(data, function (err, result) {
         // See if we actually got what we were expecting, despite possible
         // messages from the server.
@@ -1174,9 +1165,17 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 	        if (result.success) {
 	        	$scope.metadata[TaskID].broadcast_link = result.data.Link;
 	        	$scope.metadata[TaskID].broadcast_open = true;
+            setTimeout(function(){
+                console.log($( "#broadcastLink" ).focus());
+            }, 10);
 	        }
 	      });
 	    }
+      else {
+        setTimeout(function(){
+            console.log($( "#broadcastLink" ).focus());
+        }, 10);
+      }
     }
 
     $scope.showTaskModal = function(task, parentID, received) {
@@ -1207,7 +1206,7 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     };
     
     $scope.isSimple = function (task) {
-      return (task.Description == null && $scope.metadata[task.TaskID].children.length == 0);
+      return ((task.Description == null || task.Description == "") && $scope.metadata[task.TaskID].children.length == 0);
     }
 
     $scope.taskGetDueDate = function (task) {
@@ -1229,8 +1228,8 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 		$scope.addFilterTag = function(tag){
 			for (var i=0; i<$scope.filterTags.length; i++){
 				if ($scope.filterTags[i] == tag){
-					console.log("Can't add duplicate tags to sort by");
-					return -1;
+					$scope.delFilterTag(tag);
+          return;
 				}
 			}
 			$scope.filterTags.push(tag);
@@ -1265,7 +1264,55 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
         // messages from the server.
         if (result.success) {
         	var task = result.data;
-        	$scope.showTaskModal(task, null);
+          if (task.Children.length > 0) {
+            var modalInstance = $uibModal.open({
+              templateUrl: '/html/views/modals/question.html',
+              controller: 'ModalMessagesController',
+              size: 'md',
+              resolve: {
+                messages: function () {
+                  return "Would you like to receive this complex task?";
+                },
+                title: function () {
+                  return "Receive Complex Task";
+                }
+              }
+            });
+
+            modalInstance.result.then(function () {
+              // We need to know the parent task ID before we can add the children
+              var addChildTasks = function (parentTask, parentTaskID) {
+                var data = {
+                  title: parentTask.Title,
+                  description: parentTask.Description,
+                  datetime_due: parentTask.DateDue,
+                  tags: parentTask.Tags,
+                  priority: parentTask.Priority,
+                  parent_id: parentTaskID,
+                };
+
+                taskieAPI.addTask(data, function (err, result) {
+                  // See if we actually got what we were expecting, despite possible
+                  // messages from the server.
+                  if (result.success) {
+                    // Set the tasks to the list we just got back!
+                    var task = result.data[0];
+                    $scope.tasks.push(task);
+                    for (var i=0; i < parentTask.Children.length; i++) {
+                      addChildTasks(parentTask.Children[i], task.TaskID);
+                    }
+                  }
+                });
+              }
+
+              addChildTasks(task);
+            }, function () {
+              console.log("Didn't add new complex task...");
+            });
+          }
+          else {
+          	$scope.showTaskModal(task, null);
+          }
         }
       });
     }
