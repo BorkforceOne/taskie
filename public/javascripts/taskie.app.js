@@ -534,6 +534,16 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
 						title = "Error Logging In";
 						niceMessages.push("That account has requested a password reset. Please try to login again after resetting your password.");
 						break;
+						
+					case 'task-delete-error':
+						title = "Task deletion error";
+						niceMessages.push("There was a problem deleting that task.");
+						break;
+						
+					case 'task-nonexistent':
+						title: "Woops! That task doesn't exist!";
+						niceMessages.push("The task you were trying to delete doesn't exist. It may have been previously deleted.");
+						break;
 
           default:
             niceMessages.push(messages[i]);
@@ -1179,6 +1189,22 @@ angular.module('taskie', ['ui.bootstrap', 'ngRoute'])
     }
 
     $scope.showTaskModal = function(task, parentID, received) {
+      var depth = 0;
+      var tmpParentID = parentID;
+      while (tmpParentID != null) {
+        for (var i=0; i<$scope.tasks.length; i++) {
+          if ($scope.tasks[i].TaskID == tmpParentID) {
+            tmpParentID = $scope.tasks[i].ParentTaskID;
+            depth++;
+          }
+        }
+      }
+
+      if (depth >= 3) {
+        taskieAPI.showMessagesModal("Oops!", ["Maximum nesting level reached."]);
+        return;
+      }
+
       var modalInstance = $uibModal.open({
         templateUrl: '/html/views/modals/task.html',
         controller: 'ModalTaskController',

@@ -88,6 +88,7 @@ app.use(function(err, req, res, next) {
 
 /* Set up the notification system */
 var notifyTasks = function () {
+  console.log("[App] Running notify subroutine...");
   tasks.getNotifTasks(function (error, result) {
       if (!result.success) {
         console.log("[task_notif] An error occured: " + result.messages.join);
@@ -118,7 +119,7 @@ var notifyTasks = function () {
 
 setInterval(function () {
   notifyTasks();
-}, 300000);
+}, 60000*2);
 
 notifyTasks();
 

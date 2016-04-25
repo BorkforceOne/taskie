@@ -256,7 +256,7 @@ var getChildrenTasks = function (params, cb) {
 *
 */
 var getNotifTasks = function (cb) {
-	var sql = "SELECT `TaskID`, `Tasks`.`UserID`, `Title`, `Description`, `DateDue`, `Tasks`.`Status`, `Username`, `Firstname`, `Lastname`, `Email`, `DateLastNotification` FROM `Tasks` LEFT OUTER JOIN `Users` ON `Tasks`.`UserID` = `Users`.`UserID` WHERE `Tasks`.`Status` = 1 AND `NotificationInterval` != 0 AND (TIMESTAMPDIFF(MINUTE, `DateLastNotification`, NOW()) >= (1440 * `NotificationInterval`) OR `DateLastNotification` IS NULL) AND TIMESTAMPDIFF(MINUTE, `DateDue`, NOW()) <= (7*1440);"
+	var sql = "SELECT `TaskID`, `Tasks`.`UserID`, `Title`, `Description`, `DateDue`, `Tasks`.`Status`, `Username`, `Firstname`, `Lastname`, `Email`, `DateLastNotification` FROM `Tasks` LEFT OUTER JOIN `Users` ON `Tasks`.`UserID` = `Users`.`UserID` WHERE `Tasks`.`Status` = 1 AND `NotificationInterval` != 0 AND ((TIMESTAMPDIFF(MINUTE, `DateLastNotification`, NOW()) >= (1440 * `NotificationInterval`)) OR `DateLastNotification` IS NULL) AND TIMESTAMPDIFF(MINUTE, `DateDue`, NOW()) >= -(7*1440);"
 
   database.connectionPool.query(sql, function(err, rows, fields) {
     if (err) {
